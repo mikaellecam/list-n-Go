@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:listngo/services/service_locator.dart';
 
 import 'core/router.dart';
 
 void main() async {
-  //getIt<StateManager>().init();
+  await setupServiceLocator();
   runApp(const MyApp());
 }
 

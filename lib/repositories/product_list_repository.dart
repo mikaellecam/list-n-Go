@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart';
+
 import '../models/product_list/product_list.dart';
 import '../services/database/database_helper.dart';
 
@@ -6,23 +8,36 @@ class ProductListRepository {
   static const String _tableName = 'Lists';
 
   Future<int> insertList(ProductList list) async {
-    Map<String, dynamic> row = list.toJson();
+    debugPrint('Inserting list: $list');
+    Map<String, dynamic> row = Map<String, dynamic>.from(list.toJson());
+    debugPrint('Inserting row: $row');
+
+    if (row['createdAt'] != null && row['createdAt'] is DateTime) {
+      row['created_at'] = (row['createdAt'] as DateTime).toIso8601String();
+      row.remove('createdAt');
+    } else if (row['createdAt'] != null) {
+      row['created_at'] = row['createdAt'].toString();
+      row.remove('createdAt');
+    }
+
+    if (row['updatedAt'] != null && row['updatedAt'] is DateTime) {
+      row['updated_at'] = (row['updatedAt'] as DateTime).toIso8601String();
+      row.remove('updatedAt');
+    } else if (row['updatedAt'] != null) {
+      row['updated_at'] = row['updatedAt'].toString();
+      row.remove('updatedAt');
+    }
+
     if (row['id'] == null) {
       row.remove('id');
     }
 
-    if (row['createdAt'] != null) {
-      row['created_at'] = row['createdAt'].toString();
+    if (row['userId'] != null) {
+      row['user_id'] = row['userId'];
+      row.remove('userId');
     }
-    row.remove('createdAt');
 
-    if (row['updatedAt'] != null) {
-      row['updated_at'] = row['updatedAt'].toString();
-    }
-    row.remove('updatedAt');
-
-    row['user_id'] = row['userId'];
-    row.remove('userId');
+    debugPrint('Row after processing: $row');
 
     return await _databaseHelper.insert(_tableName, row);
   }
@@ -32,6 +47,20 @@ class ProductListRepository {
       _tableName,
       where: 'id = ?',
       whereArgs: [id],
+    );
+
+    if (maps.isEmpty) {
+      return null;
+    }
+
+    return _mapToProductList(maps.first);
+  }
+
+  Future<ProductList?> getListByName(String name) async {
+    List<Map<String, dynamic>> maps = await _databaseHelper.query(
+      _tableName,
+      where: 'name = ?',
+      whereArgs: [name],
     );
 
     if (maps.isEmpty) {
@@ -61,20 +90,27 @@ class ProductListRepository {
   }
 
   Future<int> updateList(ProductList list) async {
-    Map<String, dynamic> row = list.toJson();
+    Map<String, dynamic> row = Map<String, dynamic>.from(list.toJson());
 
-    DateTime now = DateTime.now();
-    row['updated_at'] = now.toString();
+    row['updated_at'] = DateTime.now().toIso8601String();
     row.remove('updatedAt');
 
-    if (row['createdAt'] != null) {
+    if (row['createdAt'] != null && row['createdAt'] is DateTime) {
+      row['created_at'] = (row['createdAt'] as DateTime).toIso8601String();
+      row.remove('createdAt');
+    } else if (row['createdAt'] != null) {
       row['created_at'] = row['createdAt'].toString();
+      row.remove('createdAt');
     }
-    row.remove('createdAt');
 
-    row['user_id'] = row['userId'];
-    row.remove('userId');
+    if (row['userId'] != null) {
+      row['user_id'] = row['userId'];
+      row.remove('userId');
+    }
 
+    row.remove('id');
+
+    debugPrint('Updating row: $row');
     return await _databaseHelper.update(_tableName, row, 'id = ?', [list.id]);
   }
 
@@ -83,15 +119,28 @@ class ProductListRepository {
   }
 
   ProductList _mapToProductList(Map<String, dynamic> map) {
-    map['userId'] = map['user_id'];
+    final mutableMap = Map<String, dynamic>.from(map);
 
-    if (map['created_at'] != null) {
-      map['createdAt'] = DateTime.parse(map['created_at']);
-    }
-    if (map['updated_at'] != null) {
-      map['updatedAt'] = DateTime.parse(map['updated_at']);
+    if (mutableMap.containsKey('user_id')) {
+      mutableMap['userId'] = mutableMap['user_id'];
+      mutableMap.remove('user_id');
     }
 
-    return ProductList.fromJson(map);
+    if (mutableMap.containsKey('created_at')) {
+      mutableMap['createdAt'] = mutableMap['created_at'];
+      mutableMap.remove('created_at');
+    }
+
+    if (mutableMap.containsKey('updated_at')) {
+      mutableMap['updatedAt'] = mutableMap['updated_at'];
+      mutableMap.remove('updated_at');
+    }
+
+    try {
+      return ProductList.fromJson(mutableMap);
+    } catch (e) {
+      debugPrint("Error details: $e");
+      rethrow;
+    }
   }
 }

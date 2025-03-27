@@ -12,7 +12,7 @@ _Product _$ProductFromJson(Map<String, dynamic> json) => _Product(
   keywords:
       (json['keywords'] as List<dynamic>?)?.map((e) => e as String).toList(),
   price: (json['price'] as num?)?.toDouble(),
-  type: json['type'] as String?,
+  isApi: json['isApi'] as bool? ?? true,
   date: json['date'] == null ? null : DateTime.parse(json['date'] as String),
   imagePath: json['imagePath'] as String?,
   nutriScore: json['nutriScore'] as String?,
@@ -27,7 +27,7 @@ Map<String, dynamic> _$ProductToJson(_Product instance) => <String, dynamic>{
   'name': instance.name,
   'keywords': instance.keywords,
   'price': instance.price,
-  'type': instance.type,
+  'isApi': instance.isApi,
   'date': instance.date?.toIso8601String(),
   'imagePath': instance.imagePath,
   'nutriScore': instance.nutriScore,

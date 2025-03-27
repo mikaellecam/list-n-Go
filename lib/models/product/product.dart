@@ -10,7 +10,7 @@ abstract class Product with _$Product {
     required String name,
     List<String>? keywords,
     double? price,
-    String? type,
+    @Default(true) bool isApi,
     DateTime? date,
     String? imagePath,
     String? nutriScore,

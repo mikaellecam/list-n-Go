@@ -12,7 +12,6 @@ class DatabaseHelper {
   static Database? _database;
 
   static const String _databaseName = 'listngo.db';
-  static int _databaseVersion = 1;
 
   DatabaseHelper._internal();
 
@@ -26,11 +25,7 @@ class DatabaseHelper {
     Directory documentsDirectory = await getApplicationDocumentsDirectory();
     String path = join(documentsDirectory.path, _databaseName);
 
-    return await openDatabase(
-      path,
-      version: _databaseVersion,
-      onCreate: _onCreate,
-    );
+    return await openDatabase(path, version: 1, onCreate: _onCreate);
   }
 
   Future<void> _onCreate(Database db, int version) async {
