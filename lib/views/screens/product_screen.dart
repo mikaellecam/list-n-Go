@@ -10,7 +10,24 @@ class ProductScreen extends StatefulWidget {
 class _ProductScreenState extends State<ProductScreen> {
   int _quantity = 1;
   String _text = "500G";
+
+  final double _defaultPrice = 2.99;
+
   String? _selectedPrice;
+
+  // Méthode pour déterminer si le prix est différent
+  bool get _isPriceDifferent {
+    if (_selectedPrice == null || _selectedPrice!.isEmpty) {
+      return false;
+    }
+
+    final double? enteredPrice = double.tryParse(_selectedPrice!);
+    if (enteredPrice == null) {
+      return false;
+    }
+
+    return enteredPrice != _defaultPrice;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -227,6 +244,7 @@ class _ProductScreenState extends State<ProductScreen> {
                                               ),
                                           decoration: InputDecoration(
                                             labelText: 'Prix',
+                                            hintText: _defaultPrice.toString(),
                                             border: OutlineInputBorder(
                                               borderRadius:
                                                   BorderRadius.circular(
@@ -251,32 +269,43 @@ class _ProductScreenState extends State<ProductScreen> {
                                           },
                                         ),
                                       ),
-                                      SizedBox(width: 10),
-                                      //_isPriceDifferent ?
+                                      // Container fixe pour garder l'espace du bouton
                                       Container(
-                                        width: 40,
+                                        width: 50,
                                         height: 40,
-                                        decoration: BoxDecoration(
-                                          color: Color.fromRGBO(
-                                            247,
-                                            147,
-                                            76,
-                                            1.0,
-                                          ),
-                                          shape: BoxShape.circle,
-                                        ),
-                                        child: IconButton(
-                                          padding: EdgeInsets.zero,
-                                          constraints: BoxConstraints(),
-                                          icon: Icon(
-                                            Icons.check,
-                                            color: Colors.white,
-                                            size: 30,
-                                          ),
-                                          onPressed: () {},
-                                        ),
+                                        child:
+                                            _isPriceDifferent
+                                                ? Container(
+                                                  margin: const EdgeInsets.only(
+                                                    left: 10,
+                                                  ),
+                                                  width: 40,
+                                                  height: 40,
+                                                  decoration: BoxDecoration(
+                                                    color: Color.fromRGBO(
+                                                      247,
+                                                      147,
+                                                      76,
+                                                      1.0,
+                                                    ),
+                                                    shape: BoxShape.circle,
+                                                  ),
+                                                  child: IconButton(
+                                                    padding: EdgeInsets.zero,
+                                                    constraints:
+                                                        BoxConstraints(),
+                                                    icon: Icon(
+                                                      Icons.check,
+                                                      color: Colors.white,
+                                                      size: 30,
+                                                    ),
+                                                    onPressed: () {
+                                                      // Action pour confirmer le nouveau prix
+                                                    },
+                                                  ),
+                                                )
+                                                : SizedBox.shrink(), //Espace réservé
                                       ),
-                                      //: SizedBox.shrink(),
                                     ],
                                   ),
                                 ),
@@ -367,7 +396,6 @@ class _ProductScreenState extends State<ProductScreen> {
                     padding: const EdgeInsets.all(16.0),
                     decoration: const BoxDecoration(
                       color: Colors.white,
-                      // Ajout d'une ombre subtile pour séparer visuellement le bouton du contenu
                       boxShadow: [
                         BoxShadow(
                           color: Colors.black12,
