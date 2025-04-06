@@ -1,6 +1,7 @@
 import 'dart:convert';
+
 import 'package:http/http.dart' as http;
-import 'package:listngo/models/product/product.dart'; // Ajustez le chemin d'importation
+import 'package:listngo/models/product/product.dart';
 
 class ProductController {
   static const String baseUrl =
@@ -38,7 +39,7 @@ class ProductController {
   // Méthode pour mapper les données JSON vers l'objet Product
   Product _mapToProduct(Map<String, dynamic> data, String barcodeStr) {
     // Nom du produit
-    final name = data['product_name'] ?? 'Produit sans nom';
+    final name = data['abbreviated_product_name_fr'] ?? 'Produit sans nom';
 
     // Mots clés
     List<String> keywords = [];
@@ -56,8 +57,8 @@ class ProductController {
 
     // Image
     String? imagePath;
-    if (data['image_url'] != null) {
-      imagePath = data['image_url'];
+    if (data['image_front_small_url'] != null) {
+      imagePath = data['image_front_small_url'];
     }
 
     // Nutri-Score
