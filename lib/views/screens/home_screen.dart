@@ -4,8 +4,8 @@ import 'package:listngo/services/product_list_service.dart';
 import 'package:listngo/services/service_locator.dart';
 
 import '../../models/product_list/product_list.dart';
+import '../widgets/list_card.dart';
 import '../widgets/search_bar_with_add.dart';
-import '../widgets/shop_list_item.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -43,9 +43,9 @@ class _HomeScreenState extends State<HomeScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              _buildTabButton(0, Icons.shopping_cart, "Listes de courses"),
+              _buildTabButton(context, 0, Icons.shopping_cart, "Listes"),
               const SizedBox(width: 8),
-              _buildTabButton(1, Icons.receipt, "Tickets de caisse"),
+              _buildTabButton(context, 1, Icons.receipt, "Tickets"),
             ],
           ),
 
@@ -109,37 +109,48 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  Widget _buildTabButton(int index, IconData icon, String label) {
+  Widget _buildTabButton(
+    BuildContext context,
+    int index,
+    IconData icon,
+    String label,
+  ) {
     bool isSelected = _selectedTab == index;
 
-    return ElevatedButton.icon(
-      onPressed: () {
-        setState(() {
-          _selectedTab = index;
-        });
-      },
-      icon: Icon(
-        icon,
-        color:
-            isSelected ? Colors.white : const Color.fromRGBO(247, 147, 76, 1.0),
-      ),
-      label: Text(
-        label,
-        style: TextStyle(
+    return SizedBox(
+      width: MediaQuery.of(context).size.width * 0.45,
+      child: ElevatedButton.icon(
+        onPressed:
+            () => setState(() {
+              _selectedTab = index;
+            }),
+        icon: Icon(
+          icon,
           color:
               isSelected
                   ? Colors.white
                   : const Color.fromRGBO(247, 147, 76, 1.0),
         ),
-      ),
-      style: ElevatedButton.styleFrom(
-        backgroundColor:
-            isSelected ? const Color.fromRGBO(247, 147, 76, 1.0) : Colors.white,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(30),
-          side: const BorderSide(color: Color.fromRGBO(247, 147, 76, 1.0)),
+        label: Text(
+          label,
+          style: TextStyle(
+            color:
+                isSelected
+                    ? Colors.white
+                    : const Color.fromRGBO(247, 147, 76, 1.0),
+          ),
         ),
-        padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 12),
+        style: ElevatedButton.styleFrom(
+          backgroundColor:
+              isSelected
+                  ? const Color.fromRGBO(247, 147, 76, 1.0)
+                  : Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(30),
+            side: const BorderSide(color: Color.fromRGBO(247, 147, 76, 1.0)),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 12),
+        ),
       ),
     );
   }
@@ -170,7 +181,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 itemCount: lists.length,
                 itemBuilder: (context, index) {
                   final list = lists[index];
-                  return ShopListItem(
+                  return ListCard(
                     productList: list,
                     onTap: () {
                       _productListService.currentList.value = list;
