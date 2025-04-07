@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
-import '../widgets/shop_list.dart';
+import 'package:go_router/go_router.dart';
+import 'package:listngo/services/product_list_service.dart';
+import 'package:listngo/services/service_locator.dart';
+
+import '../../models/product_list/product_list.dart';
 import '../widgets/search_bar_with_add.dart';
+import '../widgets/shop_list_item.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -11,6 +16,17 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedTab = 0;
+  final ProductListService _productListService = getIt<ProductListService>();
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProductLists();
+  }
+
+  Future<void> _loadProductLists() async {
+    await _productListService.loadLists();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -35,15 +51,62 @@ class _HomeScreenState extends State<HomeScreen> {
 
           // Affichage conditionnel de la barre de recherche
           const SizedBox(height: 10),
-          SearchBarWithAdd(showAddButton: _selectedTab == 0),
+          SearchBarWithAdd(
+            showAddButton: _selectedTab == 0,
+            onAddButtonPressed: _createNewList,
+          ),
           const SizedBox(height: 10),
-
           Expanded(
             child: _selectedTab == 0 ? _buildListView() : _buildFavoritesView(),
           ),
         ],
       ),
     );
+  }
+
+  Future<void> _createNewList() async {
+    final TextEditingController textController = TextEditingController();
+
+    try {
+      String? name = await showDialog<String>(
+        context: context,
+        builder:
+            (context) => AlertDialog(
+              title: Text('Nouvelle liste'),
+              content: TextField(
+                controller: textController,
+                autofocus: true,
+                decoration: InputDecoration(hintText: 'Nom de la liste'),
+                onSubmitted: (value) => context.pop(value),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => context.pop(),
+                  child: Text('Annuler'),
+                ),
+                TextButton(
+                  onPressed: () => context.pop(textController.text),
+                  child: Text('Créer'),
+                ),
+              ],
+            ),
+      );
+
+      if (name != null && name.isNotEmpty) {
+        await _productListService.addList(name);
+
+        if (_productListService.error.value != null && mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(_productListService.error.value!),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    } finally {
+      textController.dispose();
+    }
   }
 
   Widget _buildTabButton(int index, IconData icon, String label) {
@@ -82,10 +145,43 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildListView() {
-    return ListView.builder(
-      itemCount: 15,
-      itemBuilder: (context, index) {
-        return ShopListItem();
+    return ValueListenableBuilder<List<ProductList>>(
+      valueListenable: _productListService.lists,
+      builder: (context, lists, child) {
+        return ValueListenableBuilder<bool>(
+          valueListenable: _productListService.isLoading,
+          builder: (context, isLoading, child) {
+            if (isLoading) {
+              return Center(child: CircularProgressIndicator());
+            }
+
+            if (lists.isEmpty) {
+              return Center(
+                child: Text(
+                  "Aucune liste de courses",
+                  style: TextStyle(fontSize: 18, color: Colors.grey),
+                ),
+              );
+            }
+
+            return RefreshIndicator(
+              onRefresh: _loadProductLists,
+              child: ListView.builder(
+                itemCount: lists.length,
+                itemBuilder: (context, index) {
+                  final list = lists[index];
+                  return ShopListItem(
+                    productList: list,
+                    onTap: () {
+                      _productListService.currentList.value = list;
+                      context.push('/product', extra: list);
+                    },
+                  );
+                },
+              ),
+            );
+          },
+        );
       },
     );
   }

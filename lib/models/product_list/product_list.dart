@@ -9,7 +9,6 @@ DateTime _defaultDateTimeNow() => DateTime.now();
 abstract class ProductList with _$ProductList {
   const factory ProductList({
     int? id,
-    required int userId,
     required String name,
     required DateTime createdAt,
     required DateTime updatedAt,
@@ -18,13 +17,8 @@ abstract class ProductList with _$ProductList {
   factory ProductList.fromJson(Map<String, dynamic> json) =>
       _$ProductListFromJson(json);
 
-  factory ProductList.createNew({required int userId, required String name}) {
+  factory ProductList.createNew({required String name}) {
     final now = DateTime.now();
-    return ProductList(
-      userId: userId,
-      name: name,
-      createdAt: now,
-      updatedAt: now,
-    );
+    return ProductList(name: name, createdAt: now, updatedAt: now);
   }
 }

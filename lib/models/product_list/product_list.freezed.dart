@@ -16,7 +16,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$ProductList {
 
- int? get id; int get userId; String get name; DateTime get createdAt; DateTime get updatedAt;
+ int? get id; String get name; DateTime get createdAt; DateTime get updatedAt;
 /// Create a copy of ProductList
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -29,16 +29,16 @@ $ProductListCopyWith<ProductList> get copyWith => _$ProductListCopyWithImpl<Prod
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ProductList&&(identical(other.id, id) || other.id == id)&&(identical(other.userId, userId) || other.userId == userId)&&(identical(other.name, name) || other.name == name)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ProductList&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,userId,name,createdAt,updatedAt);
+int get hashCode => Object.hash(runtimeType,id,name,createdAt,updatedAt);
 
 @override
 String toString() {
-  return 'ProductList(id: $id, userId: $userId, name: $name, createdAt: $createdAt, updatedAt: $updatedAt)';
+  return 'ProductList(id: $id, name: $name, createdAt: $createdAt, updatedAt: $updatedAt)';
 }
 
 
@@ -49,7 +49,7 @@ abstract mixin class $ProductListCopyWith<$Res>  {
   factory $ProductListCopyWith(ProductList value, $Res Function(ProductList) _then) = _$ProductListCopyWithImpl;
 @useResult
 $Res call({
- int? id, int userId, String name, DateTime createdAt, DateTime updatedAt
+ int? id, String name, DateTime createdAt, DateTime updatedAt
 });
 
 
@@ -66,11 +66,10 @@ class _$ProductListCopyWithImpl<$Res>
 
 /// Create a copy of ProductList
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = freezed,Object? userId = null,Object? name = null,Object? createdAt = null,Object? updatedAt = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = freezed,Object? name = null,Object? createdAt = null,Object? updatedAt = null,}) {
   return _then(_self.copyWith(
 id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as int?,userId: null == userId ? _self.userId : userId // ignore: cast_nullable_to_non_nullable
-as int,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as int?,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime,
@@ -84,11 +83,10 @@ as DateTime,
 @JsonSerializable()
 
 class _ProductList implements ProductList {
-  const _ProductList({this.id, required this.userId, required this.name, required this.createdAt, required this.updatedAt});
+  const _ProductList({this.id, required this.name, required this.createdAt, required this.updatedAt});
   factory _ProductList.fromJson(Map<String, dynamic> json) => _$ProductListFromJson(json);
 
 @override final  int? id;
-@override final  int userId;
 @override final  String name;
 @override final  DateTime createdAt;
 @override final  DateTime updatedAt;
@@ -106,16 +104,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ProductList&&(identical(other.id, id) || other.id == id)&&(identical(other.userId, userId) || other.userId == userId)&&(identical(other.name, name) || other.name == name)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ProductList&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,userId,name,createdAt,updatedAt);
+int get hashCode => Object.hash(runtimeType,id,name,createdAt,updatedAt);
 
 @override
 String toString() {
-  return 'ProductList(id: $id, userId: $userId, name: $name, createdAt: $createdAt, updatedAt: $updatedAt)';
+  return 'ProductList(id: $id, name: $name, createdAt: $createdAt, updatedAt: $updatedAt)';
 }
 
 
@@ -126,7 +124,7 @@ abstract mixin class _$ProductListCopyWith<$Res> implements $ProductListCopyWith
   factory _$ProductListCopyWith(_ProductList value, $Res Function(_ProductList) _then) = __$ProductListCopyWithImpl;
 @override @useResult
 $Res call({
- int? id, int userId, String name, DateTime createdAt, DateTime updatedAt
+ int? id, String name, DateTime createdAt, DateTime updatedAt
 });
 
 
@@ -143,11 +141,10 @@ class __$ProductListCopyWithImpl<$Res>
 
 /// Create a copy of ProductList
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = freezed,Object? userId = null,Object? name = null,Object? createdAt = null,Object? updatedAt = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = freezed,Object? name = null,Object? createdAt = null,Object? updatedAt = null,}) {
   return _then(_ProductList(
 id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as int?,userId: null == userId ? _self.userId : userId // ignore: cast_nullable_to_non_nullable
-as int,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as int?,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime,
