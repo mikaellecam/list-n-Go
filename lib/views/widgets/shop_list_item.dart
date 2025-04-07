@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:listngo/models/product_list/product_list.dart';
 
 class ShopListItem extends StatelessWidget {
-  const ShopListItem({super.key});
+  final ProductList productList;
+  final VoidCallback? onTap;
+
+  const ShopListItem({super.key, required this.productList, this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -15,7 +19,7 @@ class ShopListItem extends StatelessWidget {
           height: 80,
         ),
         title: Text(
-          "Nom",
+          productList.name,
           softWrap: true,
           overflow: TextOverflow.ellipsis,
           style: const TextStyle(
@@ -26,7 +30,7 @@ class ShopListItem extends StatelessWidget {
           ),
         ),
         subtitle: Text(
-          "nb articles",
+          "Créée le ${_formatDate(productList.createdAt)}", // TODO Change this created at value to the numbers
           style: const TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.bold,
@@ -40,5 +44,9 @@ class ShopListItem extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  String _formatDate(DateTime date) {
+    return "${date.day}/${date.month}/${date.year}";
   }
 }

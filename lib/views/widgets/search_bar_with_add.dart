@@ -2,8 +2,13 @@ import 'package:flutter/material.dart';
 
 class SearchBarWithAdd extends StatefulWidget {
   final bool showAddButton;
+  final VoidCallback? onAddButtonPressed;
 
-  const SearchBarWithAdd({super.key, required this.showAddButton});
+  const SearchBarWithAdd({
+    super.key,
+    required this.showAddButton,
+    this.onAddButtonPressed,
+  });
 
   @override
   _SearchBarWithAddState createState() => _SearchBarWithAddState();
@@ -11,84 +16,6 @@ class SearchBarWithAdd extends StatefulWidget {
 
 class _SearchBarWithAddState extends State<SearchBarWithAdd> {
   final TextEditingController _searchController = TextEditingController();
-
-  void _showAddListDialog() {
-    TextEditingController _listNameController = TextEditingController();
-    showDialog(
-      context: context,
-      builder:
-          (context) => AlertDialog(
-            backgroundColor: Colors.white,
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 20,
-              vertical: 20,
-            ),
-            content: Container(
-              width: 320,
-              height: 70,
-              child: Column(
-                children: [
-                  const SizedBox(height: 10),
-                  TextField(
-                    controller: _listNameController,
-                    style: const TextStyle(color: Colors.black),
-                    decoration: InputDecoration(
-                      hintText: 'Nom de la liste',
-                      hintStyle: TextStyle(
-                        color: Color.fromRGBO(176, 176, 176, 1.0),
-                      ),
-                      filled: true,
-                      fillColor: Color.fromRGBO(176, 176, 176, 0.27),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(40),
-                        borderSide: BorderSide.none,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            actions: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  TextButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: const Text(
-                      'Annuler',
-                      style: TextStyle(
-                        color: Color.fromRGBO(176, 176, 176, 1.0),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 15),
-                  TextButton(
-                    style: TextButton.styleFrom(
-                      backgroundColor: Color.fromRGBO(247, 176, 91, 1.0),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30),
-                      ),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 20,
-                        vertical: 10,
-                      ),
-                    ),
-                    onPressed: () {
-                      if (_listNameController.text.isNotEmpty) {
-                        Navigator.pop(context);
-                      }
-                    },
-                    child: const Text(
-                      'Ajouter',
-                      style: TextStyle(color: Colors.white),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -139,11 +66,17 @@ class _SearchBarWithAddState extends State<SearchBarWithAdd> {
                 width: 50,
                 height: 50,
               ),
-              onPressed: _showAddListDialog,
+              onPressed: widget.onAddButtonPressed,
             ),
           ],
         ],
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 }
