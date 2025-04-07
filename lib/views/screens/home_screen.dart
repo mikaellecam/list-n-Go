@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:listngo/services/product_list_service.dart';
 import 'package:listngo/services/service_locator.dart';
+import 'package:listngo/views/widgets/shop_list_old_item.dart';
 
 import '../../models/product_list/product_list.dart';
 import '../widgets/search_bar_with_add.dart';
@@ -198,11 +199,14 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildFavoritesView() {
-    return Center(
-      child: Text(
-        "<Afficher l'historique>",
-        style: TextStyle(fontSize: 18, color: Colors.grey),
-      ),
+    return ListView(
+      padding: const EdgeInsets.only(top: 10),
+      // test affichage //
+      children: const [
+        ReceiptItem(title: 'Carrefour', date: '5 avril 2025'),
+        ReceiptItem(title: 'Biocoop', date: '2 avril 2025'),
+      ],
+      ////////////////////
     );
   }
 }
