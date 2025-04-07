@@ -4,7 +4,7 @@ import 'package:listngo/services/product_list_service.dart';
 import 'package:listngo/services/service_locator.dart';
 import 'package:listngo/views/widgets/shop_list_old_item.dart';
 
-import '../../models/product_list/product_list.dart';
+import '../../models/product_list.dart';
 import '../widgets/list_card.dart';
 import '../widgets/search_bar_with_add.dart';
 

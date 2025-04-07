@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
-import 'package:listngo/models/product/product.dart';
+import 'package:listngo/models/product.dart';
 import 'package:listngo/services/database_service.dart';
 
 class ProductService {
