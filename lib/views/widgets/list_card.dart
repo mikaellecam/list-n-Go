@@ -4,11 +4,45 @@ import 'package:listngo/models/product_list/product_list.dart';
 import 'package:listngo/services/product_list_service.dart';
 import 'package:listngo/services/service_locator.dart';
 
-class ListCard extends StatelessWidget {
+class ListCard extends StatefulWidget {
   final ProductList productList;
   final VoidCallback? onTap;
 
   const ListCard({super.key, required this.productList, this.onTap});
+
+  @override
+  State<ListCard> createState() => _ListCardState();
+}
+
+class _ListCardState extends State<ListCard> {
+  late final TextEditingController _controller;
+  bool _isRenaming = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: widget.productList.name);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void startRenaming() {
+    setState(() {
+      _isRenaming = true;
+    });
+  }
+
+  void finishRenaming() async {
+    setState(() {
+      _isRenaming = false;
+    });
+    String newName = _controller.text;
+    // TODO Rename the list
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -17,77 +51,124 @@ class ListCard extends StatelessWidget {
       margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
       child: Padding(
         padding: const EdgeInsets.all(8.0),
-        child: Row(
-          children: [
-            IconButton(
-              onPressed: () async {
-                bool? confirm = await showDialog(
-                  context: context,
-                  builder:
-                      (context) => AlertDialog(
-                        title: const Text('Confirmation'),
-                        content: const Text(
-                          'Êtes-vous sûr de vouloir supprimer cet élément ?',
-                        ),
-                        actions: <Widget>[
-                          TextButton(
-                            onPressed: () => context.pop(false),
-                            child: const Text('Annuler'),
-                          ),
-                          TextButton(
-                            onPressed: () => context.pop(true),
-                            child: const Text('Supprimer'),
-                          ),
-                        ],
+        child: Expanded(
+          child: InkWell(
+            onTap: () => context.push('/product'),
+            splashColor: Colors.transparent,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Row(
+                    children: [
+                      Image.asset(
+                        'assets/app_assets/basket_picture.png',
+                        width: 55,
+                        height: 55,
                       ),
-                );
-                if (confirm != null && confirm) {
-                  await getIt<ProductListService>().removeList(productList);
-                  if (context.mounted) {
-                    context.pop();
-                  }
-                }
-              },
-              icon: const Icon(Icons.delete_outline_rounded, size: 20),
-            ),
-            Expanded(
-              child: InkWell(
-                onTap: () => context.push('/list'),
-                splashColor: Colors.transparent,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      children: [
-                        Image.asset(
-                          'assets/app_assets/basket_picture.png',
-                          width: 55,
-                          height: 55,
-                        ),
-                        SizedBox(width: 20),
-                        Text(
-                          productList.name,
-                          softWrap: true,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w700,
-                            fontFamily: "Lato",
-                            color: Colors.black,
+                      const SizedBox(width: 20),
+                      Expanded(
+                        // Add this Expanded widget
+                        child:
+                            _isRenaming
+                                ? TextField(
+                                  controller: _controller,
+                                  autofocus: true,
+                                  style: const TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w700,
+                                    fontFamily: "Lato",
+                                    color: Colors.black,
+                                  ),
+                                  decoration: const InputDecoration(
+                                    border: InputBorder.none,
+                                    focusedBorder: InputBorder.none,
+                                    isDense:
+                                        true, // Makes the field more compact
+                                    contentPadding:
+                                        EdgeInsets
+                                            .zero, // Removes internal padding
+                                  ),
+                                )
+                                : Text(
+                                  widget.productList.name,
+                                  softWrap: true,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w700,
+                                    fontFamily: "Lato",
+                                    color: Colors.black,
+                                  ),
+                                ),
+                      ),
+                    ],
+                  ),
+                ),
+                if (_isRenaming)
+                  IconButton(
+                    onPressed: () {
+                      FocusScope.of(context).unfocus();
+                      finishRenaming();
+                    },
+                    icon: const Icon(
+                      Icons.check,
+                      color: Colors.orange,
+                    ), // Changed to orange to match menu color
+                  ),
+                PopupMenuButton(
+                  iconColor: Colors.orange,
+                  color: Colors.white,
+                  itemBuilder:
+                      (context) => [
+                        PopupMenuItem(
+                          onTap: startRenaming,
+                          child: const Text(
+                            'Rename',
+                            style: TextStyle(color: Colors.black),
                           ),
+                        ),
+                        PopupMenuItem(
+                          child: const Text(
+                            'Remove',
+                            style: TextStyle(color: Colors.black),
+                          ),
+                          onTap: () async {
+                            bool? confirm = await showDialog(
+                              context: context,
+                              builder:
+                                  (context) => AlertDialog(
+                                    title: const Text('Confirmation'),
+                                    content: const Text(
+                                      'Êtes-vous sûr de vouloir supprimer cet élément ?',
+                                    ),
+                                    actions: <Widget>[
+                                      TextButton(
+                                        onPressed: () => context.pop(false),
+                                        child: const Text('Annuler'),
+                                      ),
+                                      TextButton(
+                                        onPressed: () => context.pop(true),
+                                        child: const Text('Supprimer'),
+                                      ),
+                                    ],
+                                  ),
+                            );
+                            if (confirm != null && confirm) {
+                              await getIt<ProductListService>().removeList(
+                                widget.productList,
+                              );
+                              if (context.mounted) {
+                                context.pop();
+                              }
+                            }
+                          },
                         ),
                       ],
-                    ),
-                    Icon(
-                      Icons.arrow_forward_ios_rounded,
-                      size: 24,
-                      color: Colors.orange,
-                    ),
-                  ],
                 ),
-              ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
