@@ -6,8 +6,11 @@ import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
 
+import '../models/product/product.dart';
+
 class DatabaseService {
   static final DatabaseService _instance = DatabaseService._internal();
+
   static DatabaseService get instance => _instance;
 
   static Database? _database;
@@ -37,7 +40,7 @@ class DatabaseService {
         name TEXT NOT NULL,
         keywords TEXT,
         price REAL,
-        type TEXT,
+        type TEXT, //Custom or API
         date TEXT,
         image_path TEXT,
         nutri_score TEXT,
@@ -223,6 +226,141 @@ class DatabaseService {
       name: map['name'],
       createdAt: DateTime.parse(map['created_at']),
       updatedAt: DateTime.parse(map['updated_at']),
+    );
+  }
+
+  Future<List<Product>> getAllProducts() async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.query(
+      'Products',
+      orderBy: 'created_at DESC',
+    );
+    return maps.map((map) => _mapDbToProduct(map)).toList();
+  }
+
+  Future<List<Product>> searchProducts(String query) async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.query(
+      'Products',
+      where: 'name LIKE ? OR keywords LIKE ?',
+      whereArgs: ['%$query%', '%$query%'],
+      orderBy: 'created_at DESC',
+    );
+    return maps.map((map) => _mapDbToProduct(map)).toList();
+  }
+
+  Future<Product?> getProductByBarcode(int barcode) async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.query(
+      'Products',
+      where: 'barcode = ?',
+      whereArgs: [barcode],
+      orderBy: 'created_at DESC',
+      limit: 1,
+    );
+
+    if (maps.isEmpty) return null;
+    return _mapDbToProduct(maps.first);
+  }
+
+  Future<Product?> getProductById(int id) async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.query(
+      'Products',
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+
+    if (maps.isEmpty) return null;
+    return _mapDbToProduct(maps.first);
+  }
+
+  Future<int> insertProduct(Product product) async {
+    final db = await database;
+    return await db.insert('Products', _mapProductToDb(product));
+  }
+
+  Future<int> updateProduct(Product product) async {
+    final db = await database;
+    return await db.update(
+      'Products',
+      _mapProductToDb(product),
+      where: 'id = ?',
+    );
+  }
+
+  Future<int> deleteProduct(int id) async {
+    final db = await database;
+    return await db.delete('Products', where: 'id = ?', whereArgs: [id]);
+  }
+
+  Map<String, dynamic> _mapProductToDb(Product product) {
+    final map = <String, dynamic>{'name': product.name};
+
+    if (product.barcode != null) {
+      map['barcode'] = product.barcode;
+    }
+
+    if (product.keywords != null && product.keywords!.isNotEmpty) {
+      map['keywords'] = product.keywords!.join(',');
+    } else {
+      map['keywords'] = '';
+    }
+
+    if (product.price != null) {
+      map['price'] = product.price;
+    }
+
+    if (product.date != null) {
+      map['date'] = product.date!.toIso8601String();
+    }
+
+    if (product.imagePath != null) {
+      map['image_path'] = product.imagePath;
+    }
+
+    if (product.nutriScore != null) {
+      map['nutri_score'] = product.nutriScore;
+    }
+
+    // Pour createdAt, utiliser la valeur actuelle si elle n'existe pas
+    map['created_at'] = (product.createdAt ?? DateTime.now()).toIso8601String();
+
+    return map;
+  }
+
+  Product _mapDbToProduct(Map<String, dynamic> map) {
+    // Traitement des mots-clés
+    List<String>? keywords;
+    if (map['keywords'] != null && map['keywords'].toString().isNotEmpty) {
+      keywords = map['keywords'].toString().split(',');
+    }
+
+    // Traitement des dates
+    DateTime? createdAt;
+    if (map['created_at'] != null) {
+      createdAt = DateTime.parse(map['created_at']);
+    }
+
+    DateTime? date;
+    if (map['date'] != null) {
+      try {
+        date = DateTime.parse(map['date']);
+      } catch (e) {
+        // Ignorer les erreurs de date non valides
+      }
+    }
+
+    return Product(
+      barcode: map['barcode'],
+      name: map['name'],
+      keywords: keywords,
+      price: map['price'],
+      date: date,
+      imagePath: map['image_path'],
+      nutriScore: map['nutri_score'],
+      isApi: map['type'] == 'API' ? true : false,
+      createdAt: createdAt,
     );
   }
 }
