@@ -18,6 +18,52 @@ class ProductService {
   final ValueNotifier<bool> isLoading = ValueNotifier(false);
   final ValueNotifier<String?> error = ValueNotifier(null);
 
+  // Recherche des produits en local et en ligne
+  Future<void> searchProduct(String query) async {
+    isLoading.value = true;
+    error.value = null;
+
+    try {
+      // Recherche locale
+      List<Product> localResults = await _db.searchProducts(query);
+      debugPrint(
+        '${localResults.length} produits trouvés localement pour: $query',
+      );
+
+      // Recherche en ligne
+      debugPrint('Recherche en ligne pour: $query');
+      List<Product> apiResults = await getProductByResearchFromAPI(query);
+      debugPrint('${apiResults.length} produits trouvés en ligne pour: $query');
+
+      List<Product> combinedResults = [...localResults];
+
+      // Ajoute les produits de l'API qui ne sont pas déjà dans les résultats locaux
+      for (final apiProduct in apiResults) {
+        if (apiProduct.barcode != null &&
+            !localResults.any(
+              (localProduct) => localProduct.barcode == apiProduct.barcode,
+            )) {
+          combinedResults.add(apiProduct);
+        }
+      }
+
+      debugPrint(
+        '${combinedResults.length} produits trouvés au total pour: $query',
+      );
+      productsSearched.value = combinedResults;
+
+      if (combinedResults.isEmpty) {
+        error.value = 'Aucun produit trouvé pour: $query';
+      }
+    } catch (e) {
+      debugPrint('Erreur lors de la recherche de produits: $e');
+      error.value = 'Erreur lors de la recherche: $e';
+      productsSearched.value = [];
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
   // Récupérer un produit par code-barres (local et en ligne)
   Future<Product?> getProductByBarcode(String barcode) async {
     isLoading.value = true;
