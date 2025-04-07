@@ -6,6 +6,7 @@ part 'product.g.dart';
 @freezed
 abstract class Product with _$Product {
   const factory Product({
+    required int id,
     int? barcode,
     required String name,
     List<String>? keywords,

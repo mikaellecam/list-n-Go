@@ -16,7 +16,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$Product {
 
- int? get barcode; String get name; List<String>? get keywords; double? get price; bool get isApi; DateTime? get date; String? get imagePath; String? get nutriScore; DateTime? get createdAt;
+ int get id; int? get barcode; String get name; List<String>? get keywords; double? get price; bool get isApi; DateTime? get date; String? get imagePath; String? get nutriScore; DateTime? get createdAt;
 /// Create a copy of Product
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -29,16 +29,16 @@ $ProductCopyWith<Product> get copyWith => _$ProductCopyWithImpl<Product>(this as
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Product&&(identical(other.barcode, barcode) || other.barcode == barcode)&&(identical(other.name, name) || other.name == name)&&const DeepCollectionEquality().equals(other.keywords, keywords)&&(identical(other.price, price) || other.price == price)&&(identical(other.isApi, isApi) || other.isApi == isApi)&&(identical(other.date, date) || other.date == date)&&(identical(other.imagePath, imagePath) || other.imagePath == imagePath)&&(identical(other.nutriScore, nutriScore) || other.nutriScore == nutriScore)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Product&&(identical(other.id, id) || other.id == id)&&(identical(other.barcode, barcode) || other.barcode == barcode)&&(identical(other.name, name) || other.name == name)&&const DeepCollectionEquality().equals(other.keywords, keywords)&&(identical(other.price, price) || other.price == price)&&(identical(other.isApi, isApi) || other.isApi == isApi)&&(identical(other.date, date) || other.date == date)&&(identical(other.imagePath, imagePath) || other.imagePath == imagePath)&&(identical(other.nutriScore, nutriScore) || other.nutriScore == nutriScore)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,barcode,name,const DeepCollectionEquality().hash(keywords),price,isApi,date,imagePath,nutriScore,createdAt);
+int get hashCode => Object.hash(runtimeType,id,barcode,name,const DeepCollectionEquality().hash(keywords),price,isApi,date,imagePath,nutriScore,createdAt);
 
 @override
 String toString() {
-  return 'Product(barcode: $barcode, name: $name, keywords: $keywords, price: $price, isApi: $isApi, date: $date, imagePath: $imagePath, nutriScore: $nutriScore, createdAt: $createdAt)';
+  return 'Product(id: $id, barcode: $barcode, name: $name, keywords: $keywords, price: $price, isApi: $isApi, date: $date, imagePath: $imagePath, nutriScore: $nutriScore, createdAt: $createdAt)';
 }
 
 
@@ -49,7 +49,7 @@ abstract mixin class $ProductCopyWith<$Res>  {
   factory $ProductCopyWith(Product value, $Res Function(Product) _then) = _$ProductCopyWithImpl;
 @useResult
 $Res call({
- int? barcode, String name, List<String>? keywords, double? price, bool isApi, DateTime? date, String? imagePath, String? nutriScore, DateTime? createdAt
+ int id, int? barcode, String name, List<String>? keywords, double? price, bool isApi, DateTime? date, String? imagePath, String? nutriScore, DateTime? createdAt
 });
 
 
@@ -66,9 +66,10 @@ class _$ProductCopyWithImpl<$Res>
 
 /// Create a copy of Product
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? barcode = freezed,Object? name = null,Object? keywords = freezed,Object? price = freezed,Object? isApi = null,Object? date = freezed,Object? imagePath = freezed,Object? nutriScore = freezed,Object? createdAt = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? barcode = freezed,Object? name = null,Object? keywords = freezed,Object? price = freezed,Object? isApi = null,Object? date = freezed,Object? imagePath = freezed,Object? nutriScore = freezed,Object? createdAt = freezed,}) {
   return _then(_self.copyWith(
-barcode: freezed == barcode ? _self.barcode : barcode // ignore: cast_nullable_to_non_nullable
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as int,barcode: freezed == barcode ? _self.barcode : barcode // ignore: cast_nullable_to_non_nullable
 as int?,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,keywords: freezed == keywords ? _self.keywords : keywords // ignore: cast_nullable_to_non_nullable
 as List<String>?,price: freezed == price ? _self.price : price // ignore: cast_nullable_to_non_nullable
@@ -88,9 +89,10 @@ as DateTime?,
 @JsonSerializable()
 
 class _Product implements Product {
-  const _Product({this.barcode, required this.name, final  List<String>? keywords, this.price, this.isApi = true, this.date, this.imagePath, this.nutriScore, this.createdAt}): _keywords = keywords;
+  const _Product({required this.id, this.barcode, required this.name, final  List<String>? keywords, this.price, this.isApi = true, this.date, this.imagePath, this.nutriScore, this.createdAt}): _keywords = keywords;
   factory _Product.fromJson(Map<String, dynamic> json) => _$ProductFromJson(json);
 
+@override final  int id;
 @override final  int? barcode;
 @override final  String name;
  final  List<String>? _keywords;
@@ -122,16 +124,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Product&&(identical(other.barcode, barcode) || other.barcode == barcode)&&(identical(other.name, name) || other.name == name)&&const DeepCollectionEquality().equals(other._keywords, _keywords)&&(identical(other.price, price) || other.price == price)&&(identical(other.isApi, isApi) || other.isApi == isApi)&&(identical(other.date, date) || other.date == date)&&(identical(other.imagePath, imagePath) || other.imagePath == imagePath)&&(identical(other.nutriScore, nutriScore) || other.nutriScore == nutriScore)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Product&&(identical(other.id, id) || other.id == id)&&(identical(other.barcode, barcode) || other.barcode == barcode)&&(identical(other.name, name) || other.name == name)&&const DeepCollectionEquality().equals(other._keywords, _keywords)&&(identical(other.price, price) || other.price == price)&&(identical(other.isApi, isApi) || other.isApi == isApi)&&(identical(other.date, date) || other.date == date)&&(identical(other.imagePath, imagePath) || other.imagePath == imagePath)&&(identical(other.nutriScore, nutriScore) || other.nutriScore == nutriScore)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,barcode,name,const DeepCollectionEquality().hash(_keywords),price,isApi,date,imagePath,nutriScore,createdAt);
+int get hashCode => Object.hash(runtimeType,id,barcode,name,const DeepCollectionEquality().hash(_keywords),price,isApi,date,imagePath,nutriScore,createdAt);
 
 @override
 String toString() {
-  return 'Product(barcode: $barcode, name: $name, keywords: $keywords, price: $price, isApi: $isApi, date: $date, imagePath: $imagePath, nutriScore: $nutriScore, createdAt: $createdAt)';
+  return 'Product(id: $id, barcode: $barcode, name: $name, keywords: $keywords, price: $price, isApi: $isApi, date: $date, imagePath: $imagePath, nutriScore: $nutriScore, createdAt: $createdAt)';
 }
 
 
@@ -142,7 +144,7 @@ abstract mixin class _$ProductCopyWith<$Res> implements $ProductCopyWith<$Res> {
   factory _$ProductCopyWith(_Product value, $Res Function(_Product) _then) = __$ProductCopyWithImpl;
 @override @useResult
 $Res call({
- int? barcode, String name, List<String>? keywords, double? price, bool isApi, DateTime? date, String? imagePath, String? nutriScore, DateTime? createdAt
+ int id, int? barcode, String name, List<String>? keywords, double? price, bool isApi, DateTime? date, String? imagePath, String? nutriScore, DateTime? createdAt
 });
 
 
@@ -159,9 +161,10 @@ class __$ProductCopyWithImpl<$Res>
 
 /// Create a copy of Product
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? barcode = freezed,Object? name = null,Object? keywords = freezed,Object? price = freezed,Object? isApi = null,Object? date = freezed,Object? imagePath = freezed,Object? nutriScore = freezed,Object? createdAt = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? barcode = freezed,Object? name = null,Object? keywords = freezed,Object? price = freezed,Object? isApi = null,Object? date = freezed,Object? imagePath = freezed,Object? nutriScore = freezed,Object? createdAt = freezed,}) {
   return _then(_Product(
-barcode: freezed == barcode ? _self.barcode : barcode // ignore: cast_nullable_to_non_nullable
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as int,barcode: freezed == barcode ? _self.barcode : barcode // ignore: cast_nullable_to_non_nullable
 as int?,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,keywords: freezed == keywords ? _self._keywords : keywords // ignore: cast_nullable_to_non_nullable
 as List<String>?,price: freezed == price ? _self.price : price // ignore: cast_nullable_to_non_nullable
