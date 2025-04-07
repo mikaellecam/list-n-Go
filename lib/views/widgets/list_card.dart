@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:listngo/models/product_list/product_list.dart';
+import 'package:listngo/models/product_list.dart';
 import 'package:listngo/services/product_list_service.dart';
 import 'package:listngo/services/service_locator.dart';
 

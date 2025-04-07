@@ -1,12 +1,12 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:listngo/models/product_list/product_list.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
 
-import '../models/product/product.dart';
+import '../models/product.dart';
+import '../models/product_list.dart';
 
 class DatabaseService {
   static final DatabaseService _instance = DatabaseService._internal();
@@ -171,7 +171,7 @@ class DatabaseService {
       'Lists',
       orderBy: 'updated_at DESC',
     );
-    return maps.map((map) => _mapDbToProductList(map)).toList();
+    return maps.map((map) => ProductList.fromMap(map)).toList();
   }
 
   Future<ProductList?> getProductListById(int id) async {
@@ -183,19 +183,19 @@ class DatabaseService {
     );
 
     if (maps.isEmpty) return null;
-    return _mapDbToProductList(maps.first);
+    return ProductList.fromMap(maps.first);
   }
 
   Future<int> insertProductList(ProductList list) async {
     final db = await database;
-    return await db.insert('Lists', _mapProductListToDb(list));
+    return await db.insert('Lists', list.toMap());
   }
 
   Future<int> updateProductList(ProductList list) async {
     final db = await database;
     return await db.update(
       'Lists',
-      _mapProductListToDb(list),
+      list.toMap(),
       where: 'id = ?',
       whereArgs: [list.id],
     );
@@ -206,36 +206,13 @@ class DatabaseService {
     return await db.delete('Lists', where: 'id = ?', whereArgs: [id]);
   }
 
-  Map<String, dynamic> _mapProductListToDb(ProductList list) {
-    final map = <String, dynamic>{
-      'name': list.name,
-      'created_at': list.createdAt.toIso8601String(),
-      'updated_at': list.updatedAt.toIso8601String(),
-    };
-
-    if (list.id != null) {
-      map['id'] = list.id;
-    }
-
-    return map;
-  }
-
-  ProductList _mapDbToProductList(Map<String, dynamic> map) {
-    return ProductList(
-      id: map['id'],
-      name: map['name'],
-      createdAt: DateTime.parse(map['created_at']),
-      updatedAt: DateTime.parse(map['updated_at']),
-    );
-  }
-
   Future<List<Product>> getAllProducts() async {
     final db = await database;
     final List<Map<String, dynamic>> maps = await db.query(
       'Products',
       orderBy: 'created_at DESC',
     );
-    return maps.map((map) => _mapDbToProduct(map)).toList();
+    return maps.map((map) => Product.fromMap(map)).toList();
   }
 
   Future<List<Product>> searchProducts(String query) async {
@@ -246,7 +223,7 @@ class DatabaseService {
       whereArgs: ['%$query%', '%$query%'],
       orderBy: 'created_at DESC',
     );
-    return maps.map((map) => _mapDbToProduct(map)).toList();
+    return maps.map((map) => Product.fromMap(map)).toList();
   }
 
   Future<Product?> getProductByBarcode(int barcode) async {
@@ -260,7 +237,7 @@ class DatabaseService {
     );
 
     if (maps.isEmpty) return null;
-    return _mapDbToProduct(maps.first);
+    return Product.fromMap(maps.first);
   }
 
   Future<Product?> getProductById(int id) async {
@@ -272,12 +249,12 @@ class DatabaseService {
     );
 
     if (maps.isEmpty) return null;
-    return _mapDbToProduct(maps.first);
+    return Product.fromMap(maps.first);
   }
 
   Future<int> insertProduct(Product product) async {
     final db = await database;
-    return await db.insert('Products', _mapProductToDb(product));
+    return await db.insert('Products', product.toMap());
   }
 
   Future<int> updateProduct(Product product) async {
@@ -288,7 +265,7 @@ class DatabaseService {
     final db = await database;
     return await db.update(
       'Products',
-      _mapProductToDb(product),
+      product.toMap(),
       where: 'id = ?',
       whereArgs: [product.id],
     );
@@ -297,81 +274,5 @@ class DatabaseService {
   Future<int> deleteProduct(int id) async {
     final db = await database;
     return await db.delete('Products', where: 'id = ?', whereArgs: [id]);
-  }
-
-  Map<String, dynamic> _mapProductToDb(Product product) {
-    final map = <String, dynamic>{'name': product.name};
-
-    // Gestion des champs optionnels
-    if (product.id != null) {
-      map['id'] = product.id;
-    }
-
-    if (product.barcode != null) {
-      map['barcode'] = product.barcode;
-    }
-
-    if (product.keywords != null && product.keywords!.isNotEmpty) {
-      map['keywords'] = product.keywords!.join(',');
-    } else {
-      map['keywords'] = '';
-    }
-
-    if (product.price != null) {
-      map['price'] = product.price;
-    }
-
-    if (product.date != null) {
-      map['date'] = product.date!.toIso8601String();
-    }
-
-    if (product.imagePath != null) {
-      map['image_path'] = product.imagePath;
-    }
-
-    if (product.nutriScore != null) {
-      map['nutri_score'] = product.nutriScore;
-    }
-
-    // Pour createdAt, utiliser la valeur actuelle si elle n'existe pas
-    map['created_at'] = (product.createdAt ?? DateTime.now()).toIso8601String();
-
-    return map;
-  }
-
-  Product _mapDbToProduct(Map<String, dynamic> map) {
-    // Traitement des mots-clés
-    List<String>? keywords;
-    if (map['keywords'] != null && map['keywords'].toString().isNotEmpty) {
-      keywords = map['keywords'].toString().split(',');
-    }
-
-    // Traitement des dates
-    DateTime? createdAt;
-    if (map['created_at'] != null) {
-      createdAt = DateTime.parse(map['created_at']);
-    }
-
-    DateTime? date;
-    if (map['date'] != null) {
-      try {
-        date = DateTime.parse(map['date']);
-      } catch (e) {
-        // Ignorer les erreurs de date non valides
-      }
-    }
-
-    return Product(
-      id: map['id'],
-      barcode: map['barcode'],
-      name: map['name'],
-      keywords: keywords,
-      price: map['price'],
-      date: date,
-      imagePath: map['image_path'],
-      nutriScore: map['nutri_score'],
-      isApi: map['type'] == 'API' ? true : false,
-      createdAt: createdAt,
-    );
   }
 }

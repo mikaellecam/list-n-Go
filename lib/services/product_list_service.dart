@@ -1,5 +1,5 @@
 import 'package:flutter/cupertino.dart';
-import 'package:listngo/models/product_list/product_list.dart';
+import 'package:listngo/models/product_list.dart';
 import 'package:listngo/services/database_service.dart';
 
 class ProductListService {
