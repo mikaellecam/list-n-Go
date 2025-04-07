@@ -13,13 +13,15 @@ class _ProductCardState extends State<ProductCard> {
 
   void _addQuantity() {
     setState(() {
-      _quantity++;
+      if (_quantity < 99) {
+        _quantity++;
+      }
     });
   }
 
   void _substractQuantity() {
     setState(() {
-      if (_quantity > 0) {
+      if (_quantity > 1) {
         _quantity--;
       }
     });
@@ -72,14 +74,6 @@ class _ProductCardState extends State<ProductCard> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisAlignment: MainAxisAlignment.start,
                         children: [
-                          Text(
-                            '1.50€',
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: Colors.black,
-                              fontFamily: 'Lato',
-                            ),
-                          ),
                           SizedBox(height: 10),
                           Row(
                             children: [
@@ -117,7 +111,7 @@ class _ProductCardState extends State<ProductCard> {
                           ),
                         ],
                       ),
-                      SizedBox(width: 20),
+                      SizedBox(width: 15),
                       Padding(
                         padding: EdgeInsets.only(bottom: 20),
                         child: Image.asset(
