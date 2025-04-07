@@ -281,11 +281,16 @@ class DatabaseService {
   }
 
   Future<int> updateProduct(Product product) async {
+    if (product.id == null) {
+      throw ArgumentError('Cannot update a product without an id');
+    }
+
     final db = await database;
     return await db.update(
       'Products',
       _mapProductToDb(product),
       where: 'id = ?',
+      whereArgs: [product.id],
     );
   }
 
@@ -296,6 +301,11 @@ class DatabaseService {
 
   Map<String, dynamic> _mapProductToDb(Product product) {
     final map = <String, dynamic>{'name': product.name};
+
+    // Gestion des champs optionnels
+    if (product.id != null) {
+      map['id'] = product.id;
+    }
 
     if (product.barcode != null) {
       map['barcode'] = product.barcode;
@@ -352,6 +362,7 @@ class DatabaseService {
     }
 
     return Product(
+      id: map['id'],
       barcode: map['barcode'],
       name: map['name'],
       keywords: keywords,
