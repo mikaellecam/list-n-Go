@@ -1,25 +1,22 @@
 import 'package:flutter/material.dart';
-import 'package:listngo/models/product_list/product_list.dart';
 
-class ShopListItem extends StatelessWidget {
-  final ProductList productList;
-  final VoidCallback? onTap;
+class ReceiptItem extends StatelessWidget {
+  final String title;
+  final String date;
 
-  const ShopListItem({super.key, required this.productList, this.onTap});
+  const ReceiptItem({super.key, required this.title, required this.date});
 
   @override
   Widget build(BuildContext context) {
     return Card(
       color: const Color.fromRGBO(255, 255, 255, 1.0),
       margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      elevation: 2,
       child: ListTile(
-        leading: Image.asset(
-          'assets/app_assets/basket_picture.png',
-          width: 80,
-          height: 80,
-        ),
+        leading: const Icon(Icons.receipt_long, color: Colors.orange, size: 40),
         title: Text(
-          productList.name,
+          title,
           softWrap: true,
           overflow: TextOverflow.ellipsis,
           style: const TextStyle(
@@ -30,7 +27,7 @@ class ShopListItem extends StatelessWidget {
           ),
         ),
         subtitle: Text(
-          "Créée le ${_formatDate(productList.createdAt)}", // TODO Change this created at value to the numbers
+          "Le $date",
           style: const TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.bold,
@@ -42,11 +39,10 @@ class ShopListItem extends StatelessWidget {
           width: 30,
           height: 30,
         ),
+        onTap: () {
+          //
+        },
       ),
     );
-  }
-
-  String _formatDate(DateTime date) {
-    return "${date.day}/${date.month}/${date.year}";
   }
 }

@@ -57,6 +57,30 @@ class ProductListService {
     }
   }
 
+  Future<bool> removeList(ProductList productList) async {
+    isLoading.value = true;
+    error.value = null;
+
+    try {
+      final id = productList.id;
+      if (id == null) {
+        error.value = 'List ID is null';
+        return false;
+      }
+
+      await _db.deleteProductList(id);
+
+      lists.value = lists.value.where((list) => list.id != id).toList();
+      return true;
+    } catch (e) {
+      error.value = 'Error deleting list: $e';
+      debugPrint('Error deleting list: $e');
+      return false;
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
   Future<List<ProductList>> _getListsFromDb() async {
     try {
       return await _db.getAllProductLists();
