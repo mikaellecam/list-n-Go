@@ -4,8 +4,8 @@ import 'package:listngo/services/product_list_service.dart';
 import 'package:listngo/services/service_locator.dart';
 
 import '../../models/product_list/product_list.dart';
+import '../widgets/list_card.dart';
 import '../widgets/search_bar_with_add.dart';
-import '../widgets/shop_list_item.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -181,7 +181,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 itemCount: lists.length,
                 itemBuilder: (context, index) {
                   final list = lists[index];
-                  return ShopListItem(
+                  return ListCard(
                     productList: list,
                     onTap: () {
                       _productListService.currentList.value = list;
