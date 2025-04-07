@@ -16,7 +16,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$Receipt {
 
- int? get id; int? get userId; String? get name; double? get price; DateTime? get createdAt;
+ int? get id; String? get name; double? get price; DateTime? get createdAt;
 /// Create a copy of Receipt
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -29,16 +29,16 @@ $ReceiptCopyWith<Receipt> get copyWith => _$ReceiptCopyWithImpl<Receipt>(this as
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Receipt&&(identical(other.id, id) || other.id == id)&&(identical(other.userId, userId) || other.userId == userId)&&(identical(other.name, name) || other.name == name)&&(identical(other.price, price) || other.price == price)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Receipt&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.price, price) || other.price == price)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,userId,name,price,createdAt);
+int get hashCode => Object.hash(runtimeType,id,name,price,createdAt);
 
 @override
 String toString() {
-  return 'Receipt(id: $id, userId: $userId, name: $name, price: $price, createdAt: $createdAt)';
+  return 'Receipt(id: $id, name: $name, price: $price, createdAt: $createdAt)';
 }
 
 
@@ -49,7 +49,7 @@ abstract mixin class $ReceiptCopyWith<$Res>  {
   factory $ReceiptCopyWith(Receipt value, $Res Function(Receipt) _then) = _$ReceiptCopyWithImpl;
 @useResult
 $Res call({
- int? id, int? userId, String? name, double? price, DateTime? createdAt
+ int? id, String? name, double? price, DateTime? createdAt
 });
 
 
@@ -66,10 +66,9 @@ class _$ReceiptCopyWithImpl<$Res>
 
 /// Create a copy of Receipt
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = freezed,Object? userId = freezed,Object? name = freezed,Object? price = freezed,Object? createdAt = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = freezed,Object? name = freezed,Object? price = freezed,Object? createdAt = freezed,}) {
   return _then(_self.copyWith(
 id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as int?,userId: freezed == userId ? _self.userId : userId // ignore: cast_nullable_to_non_nullable
 as int?,name: freezed == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String?,price: freezed == price ? _self.price : price // ignore: cast_nullable_to_non_nullable
 as double?,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
@@ -84,11 +83,10 @@ as DateTime?,
 @JsonSerializable()
 
 class _Receipt implements Receipt {
-  const _Receipt({this.id, this.userId, this.name, this.price, this.createdAt});
+  const _Receipt({this.id, this.name, this.price, this.createdAt});
   factory _Receipt.fromJson(Map<String, dynamic> json) => _$ReceiptFromJson(json);
 
 @override final  int? id;
-@override final  int? userId;
 @override final  String? name;
 @override final  double? price;
 @override final  DateTime? createdAt;
@@ -106,16 +104,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Receipt&&(identical(other.id, id) || other.id == id)&&(identical(other.userId, userId) || other.userId == userId)&&(identical(other.name, name) || other.name == name)&&(identical(other.price, price) || other.price == price)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Receipt&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.price, price) || other.price == price)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,userId,name,price,createdAt);
+int get hashCode => Object.hash(runtimeType,id,name,price,createdAt);
 
 @override
 String toString() {
-  return 'Receipt(id: $id, userId: $userId, name: $name, price: $price, createdAt: $createdAt)';
+  return 'Receipt(id: $id, name: $name, price: $price, createdAt: $createdAt)';
 }
 
 
@@ -126,7 +124,7 @@ abstract mixin class _$ReceiptCopyWith<$Res> implements $ReceiptCopyWith<$Res> {
   factory _$ReceiptCopyWith(_Receipt value, $Res Function(_Receipt) _then) = __$ReceiptCopyWithImpl;
 @override @useResult
 $Res call({
- int? id, int? userId, String? name, double? price, DateTime? createdAt
+ int? id, String? name, double? price, DateTime? createdAt
 });
 
 
@@ -143,10 +141,9 @@ class __$ReceiptCopyWithImpl<$Res>
 
 /// Create a copy of Receipt
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = freezed,Object? userId = freezed,Object? name = freezed,Object? price = freezed,Object? createdAt = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = freezed,Object? name = freezed,Object? price = freezed,Object? createdAt = freezed,}) {
   return _then(_Receipt(
 id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as int?,userId: freezed == userId ? _self.userId : userId // ignore: cast_nullable_to_non_nullable
 as int?,name: freezed == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String?,price: freezed == price ? _self.price : price // ignore: cast_nullable_to_non_nullable
 as double?,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable

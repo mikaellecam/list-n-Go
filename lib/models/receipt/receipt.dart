@@ -7,7 +7,6 @@ part 'receipt.g.dart';
 abstract class Receipt with _$Receipt {
   const factory Receipt({
     int? id,
-    int? userId,
     String? name,
     double? price,
     DateTime? createdAt,
