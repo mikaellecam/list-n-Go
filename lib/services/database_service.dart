@@ -40,7 +40,7 @@ class DatabaseService {
         name TEXT NOT NULL,
         keywords TEXT,
         quantity TEXT,
-        type TEXT, //Custom or API
+        type TEXT,
         date TEXT,
         image_path TEXT,
         nutri_score TEXT,
