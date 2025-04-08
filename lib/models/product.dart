@@ -3,8 +3,8 @@ class Product {
   final int? barcode;
   final String name;
   final List<String>? keywords;
-  final double? price;
   final bool isApi;
+  final String? quantity; //Poids / Volume ...
   final DateTime? date;
   final String? imagePath;
   final String? nutriScore;
@@ -15,7 +15,7 @@ class Product {
     this.barcode,
     required this.name,
     this.keywords,
-    this.price,
+    this.quantity,
     this.isApi = true,
     this.date,
     this.imagePath,
@@ -34,8 +34,8 @@ class Product {
       barcode: map['barcode'],
       name: map['name'],
       keywords: keywordsList,
-      price: map['price'],
       isApi: map['type'] == 'API',
+      quantity: map['quantity'],
       date: map['date'] != null ? DateTime.parse(map['date']) : null,
       imagePath: map['image_path'],
       nutriScore: map['nutri_score'],
@@ -61,14 +61,14 @@ class Product {
       map['keywords'] = '';
     }
 
-    if (price != null) {
-      map['price'] = price;
-    }
-
     map['type'] = isApi ? 'API' : 'Custom';
 
     if (date != null) {
       map['date'] = date!.toIso8601String();
+    }
+
+    if (quantity != null) {
+      map['quantity'] = quantity;
     }
 
     if (imagePath != null) {
