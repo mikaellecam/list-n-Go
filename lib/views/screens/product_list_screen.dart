@@ -6,12 +6,59 @@ import 'package:listngo/views/widgets/custom_app_bar.dart';
 import '../../models/product_list.dart';
 import '../widgets/product_card.dart';
 
-class ProductListScreen extends StatelessWidget {
+class ProductListScreen extends StatefulWidget {
   const ProductListScreen({super.key});
 
   @override
+  State<ProductListScreen> createState() => _ProductListScreenState();
+}
+
+class _ProductListScreenState extends State<ProductListScreen> {
+  late final TextEditingController _controller;
+  final ProductListService productListService = getIt<ProductListService>();
+  bool _isRenaming = false;
+  bool _isExpanded = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(
+      text: productListService.currentList.value!.name,
+    );
+  }
+
+  void toggleExpandOptions() {
+    setState(() {
+      _isExpanded = !_isExpanded;
+    });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void startRenaming() {
+    setState(() {
+      _isRenaming = true;
+    });
+  }
+
+  void finishRenaming() async {
+    setState(() {
+      _isRenaming = false;
+    });
+    String newName = _controller.text;
+    if (newName.isEmpty) {
+      return;
+    }
+    productListService.currentList.value!.name = newName;
+    productListService.updateList(productListService.currentList.value!);
+  }
+
+  @override
   Widget build(BuildContext context) {
-    ProductListService productListService = getIt<ProductListService>();
     ProductList currentList = productListService.currentList.value!;
 
     return Scaffold(
@@ -29,41 +76,74 @@ class ProductListScreen extends StatelessWidget {
                   padding: const EdgeInsets.all(16.0),
                   child: Row(
                     children: [
-                      Spacer(),
-                      Container(
-                        constraints: BoxConstraints(maxWidth: 250),
-                        alignment: Alignment.center,
+                      Expanded(
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Text(
-                              currentList.name,
-                              style: const TextStyle(
-                                fontSize: 18,
-                                fontFamily: "Lato",
-                                color: Colors.black,
-                              ),
-                              textAlign: TextAlign.center,
-                              softWrap: true,
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
+                            Expanded(
+                              child:
+                                  _isRenaming
+                                      ? TextField(
+                                        controller: _controller,
+                                        autofocus: true,
+                                        style: const TextStyle(
+                                          fontSize: 24,
+                                          fontFamily: "Lato",
+                                          color: Colors.black,
+                                        ),
+                                        decoration: const InputDecoration(
+                                          border: InputBorder.none,
+                                          focusedBorder: InputBorder.none,
+                                          isDense: true,
+                                          contentPadding: EdgeInsets.zero,
+                                        ),
+                                      )
+                                      : Text(
+                                        currentList.name,
+                                        style: const TextStyle(
+                                          fontSize: 24,
+                                          fontFamily: "Lato",
+                                          color: Colors.black,
+                                        ),
+                                        softWrap: true,
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
                             ),
-                            Padding(
-                              padding: EdgeInsets.only(bottom: 10),
-                              child: Image.asset(
-                                'assets/app_assets/pencil_icon.png',
-                                width: 60,
-                                height: 60,
-                              ),
-                            ),
+                            _isRenaming
+                                ? Row(
+                                  children: [
+                                    IconButton(
+                                      onPressed: () => finishRenaming(),
+                                      icon: Icon(Icons.check, size: 30),
+                                      color: Color.fromRGBO(247, 147, 76, 1.0),
+                                    ),
+                                    IconButton(
+                                      onPressed: () {
+                                        setState(() {
+                                          _isRenaming = false;
+                                        });
+                                      },
+                                      icon: Icon(Icons.close, size: 30),
+                                      color: Color.fromRGBO(247, 147, 76, 1.0),
+                                    ),
+                                  ],
+                                )
+                                : IconButton(
+                                  onPressed: () => startRenaming(),
+                                  icon: Icon(Icons.edit, size: 30),
+                                  color: Color.fromRGBO(247, 147, 76, 1.0),
+                                ),
                           ],
                         ),
                       ),
-                      Spacer(),
-                      Image.asset(
-                        'assets/app_assets/plus_light-orange_icon.png',
-                        width: 35,
-                        height: 35,
+                      IconButton(
+                        onPressed: toggleExpandOptions,
+                        icon: const Icon(
+                          Icons.add_circle_rounded,
+                          color: Color.fromRGBO(247, 147, 76, 1.0),
+                          size: 50,
+                        ),
                       ),
                     ],
                   ),
@@ -88,6 +168,106 @@ class ProductListScreen extends StatelessWidget {
               ],
             ),
           ),
+
+          if (_isExpanded)
+            Positioned(
+              top: 80,
+              right: 25,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Container(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 8,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(20),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.1),
+                                spreadRadius: 1,
+                                blurRadius: 3,
+                                offset: const Offset(0, 1),
+                              ),
+                            ],
+                          ),
+                          child: const Text(
+                            'Scanner un code-barres',
+                            style: TextStyle(fontFamily: "Lato", fontSize: 14),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        FloatingActionButton.small(
+                          backgroundColor: const Color.fromRGBO(
+                            247,
+                            147,
+                            76,
+                            1.0,
+                          ),
+                          heroTag: 'scan',
+                          onPressed: () {
+                            print("Scan barcode");
+                            toggleExpandOptions();
+                          },
+                          child: const Icon(
+                            Icons.qr_code_scanner,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.1),
+                              spreadRadius: 1,
+                              blurRadius: 3,
+                              offset: const Offset(0, 1),
+                            ),
+                          ],
+                        ),
+                        child: const Text(
+                          'Rechercher un produit',
+                          style: TextStyle(fontFamily: "Lato", fontSize: 14),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      FloatingActionButton.small(
+                        backgroundColor: const Color.fromRGBO(
+                          247,
+                          147,
+                          76,
+                          1.0,
+                        ),
+                        heroTag: 'search',
+                        onPressed: () {
+                          print("Search product");
+                          toggleExpandOptions();
+                        },
+                        child: const Icon(Icons.search, color: Colors.white),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
 
           Positioned(
             bottom: 0,
@@ -116,6 +296,15 @@ class ProductListScreen extends StatelessWidget {
               ),
             ),
           ),
+
+          if (_isExpanded)
+            Positioned.fill(
+              child: GestureDetector(
+                onTap: toggleExpandOptions,
+                behavior: HitTestBehavior.translucent,
+                child: Container(color: Colors.transparent),
+              ),
+            ),
         ],
       ),
     );
