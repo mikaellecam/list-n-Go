@@ -1,9 +1,10 @@
 import 'package:flutter/cupertino.dart';
 import 'package:listngo/models/product_list.dart';
 import 'package:listngo/services/database_service.dart';
+import 'package:listngo/services/service_locator.dart';
 
 class ProductListService {
-  final _db = DatabaseService.instance;
+  final db = getIt<DatabaseService>();
 
   final ValueNotifier<List<ProductList>> lists = ValueNotifier([]);
   final ValueNotifier<ProductList?> currentList = ValueNotifier(null);
@@ -31,10 +32,10 @@ class ProductListService {
     try {
       final newList = ProductList.createNew(name: name);
 
-      final id = await _db.insertProductList(newList);
+      final id = await db.insertProductList(newList);
 
       if (id > 0) {
-        final createdList = await _db.getProductListById(id);
+        final createdList = await db.getProductListById(id);
         if (createdList != null) {
           final updatedLists =
               List<ProductList>.from(lists.value)
@@ -68,7 +69,7 @@ class ProductListService {
         return false;
       }
 
-      await _db.deleteProductList(id);
+      await db.deleteProductList(id);
 
       lists.value = lists.value.where((list) => list.id != id).toList();
       return true;
@@ -81,9 +82,36 @@ class ProductListService {
     }
   }
 
+  Future<bool> updateList(ProductList productList) async {
+    isLoading.value = true;
+    error.value = null;
+
+    try {
+      final id = productList.id;
+      if (id == null) {
+        error.value = 'List ID is null';
+        return false;
+      }
+
+      await db.updateProductList(productList);
+
+      lists.value =
+          lists.value
+              .map((list) => list.id == id ? productList : list)
+              .toList();
+      return true;
+    } catch (e) {
+      error.value = 'Error updating list: $e';
+      debugPrint('Error updating list: $e');
+      return false;
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
   Future<List<ProductList>> _getListsFromDb() async {
     try {
-      return await _db.getAllProductLists();
+      return await db.getAllProductLists();
     } catch (e) {
       debugPrint('Error fetching lists from DB: $e');
       rethrow;

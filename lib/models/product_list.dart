@@ -1,6 +1,6 @@
 class ProductList {
   final int? id;
-  final String name;
+  String name;
   final DateTime createdAt;
   final DateTime updatedAt;
 
