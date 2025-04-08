@@ -39,8 +39,8 @@ class DatabaseService {
         barcode INTEGER,
         name TEXT NOT NULL,
         keywords TEXT,
-        price REAL,
-        type TEXT,
+        quantity TEXT,
+        type TEXT, //Custom or API
         date TEXT,
         image_path TEXT,
         nutri_score TEXT,
