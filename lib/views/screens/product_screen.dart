@@ -25,65 +25,10 @@ class _ProductScreenState extends State<ProductScreen> {
     'salt': false,
   };
 
-  final ProductService _productService = ProductService();
-  final ProductService productServiceGetIt = getIt<ProductService>();
-
-  Future<void> loadProductFromAPI() async {
-    try {
-      final String barcode = "8852018101024";
-      final product = await _productService.getProductByBarcode(barcode);
-
-      if (product == null) {
-        debugPrint('Produit non trouvé pour ce code-barres: $barcode');
-      } else {
-        setState(() {
-          checkVisibility();
-          productServiceGetIt.currentProduct.value = product;
-        });
-      }
-    } catch (e) {
-      debugPrint('Erreur lors du chargement du produit depuis l\'API: $e');
-    }
-  }
-
-  // Méthode pour charger un produit fictif modifiable
-  void loadLocalProduct() {
-    try {
-      // Création d'un produit fictif que vous pouvez modifier
-      final product = Product(
-        id: 2,
-        barcode: 1234567890123,
-        name: "Appli modifié",
-        keywords: ["test", "local", "modifiable"],
-        quantity: "500g",
-        isApi: false,
-        // Important: false pour pouvoir modifier
-        imagePath:
-            "https://images.openfoodfacts.org/images/products/893/521/090/1767/front_fr.3.400.jpg",
-        nutriScore: "A",
-        fat: 11.2,
-        saturatedFat: 11.2,
-        salt: 5,
-        sugar: 56.3,
-      );
-
-      // Mettre à jour le produit actuel
-      _productService.currentProduct.value = product;
-
-      // Mettre à jour les variables de visibilité
-      setState(() {
-        checkVisibility();
-        productServiceGetIt.currentProduct.value = product;
-      });
-
-      debugPrint('Produit local chargé avec succès');
-    } catch (e) {
-      debugPrint('Erreur lors du chargement du produit local: $e');
-    }
-  }
+  final ProductService productService = getIt<ProductService>();
 
   void checkVisibility() {
-    final product = _productService.currentProduct.value;
+    final product = productService.currentProduct.value;
     if (product == null) return;
 
     // Vérification de Nutriscore
@@ -111,8 +56,6 @@ class _ProductScreenState extends State<ProductScreen> {
   @override
   void initState() {
     super.initState();
-    loadProductFromAPI();
-    //loadLocalProduct();
   }
 
   @override
@@ -123,7 +66,7 @@ class _ProductScreenState extends State<ProductScreen> {
       backgroundColor: const Color.fromARGB(255, 243, 243, 243),
       appBar: CustomAppBar(),
       body: ValueListenableBuilder<Product?>(
-        valueListenable: _productService.currentProduct,
+        valueListenable: productService.currentProduct,
         builder: (context, product, child) {
           if (product == null) {
             return const Center(
