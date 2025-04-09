@@ -63,6 +63,64 @@ class ProductService {
     }
   }
 
+  // MAJ un produit
+  Future<int> updateProduct({
+    required int id,
+    required String name,
+    String? quantity,
+    List<String>? keywords,
+    String? nutriScore,
+  }) async {
+    isLoading.value = true;
+    error.value = null;
+
+    try {
+      // Récupérer le produit existant
+      final existingProduct = await _db.getProductById(id);
+
+      if (existingProduct == null) {
+        error.value = 'Produit non trouvé';
+        return -1;
+      }
+
+      // Créer un nouveau produit avec les valeurs mises à jour
+      final updatedProduct = Product(
+        id: existingProduct.id,
+        barcode: existingProduct.barcode,
+        name: name,
+        quantity: quantity,
+        keywords: keywords,
+        nutriScore: nutriScore,
+        isApi: existingProduct.isApi,
+        date: existingProduct.date,
+        imagePath: existingProduct.imagePath,
+        fat: existingProduct.fat,
+        saturatedFat: existingProduct.saturatedFat,
+        sugar: existingProduct.sugar,
+        salt: existingProduct.salt,
+        createdAt: existingProduct.createdAt,
+      );
+
+      debugPrint('Mise à jour du produit: ${updatedProduct.name}');
+      final result = await _db.updateProduct(updatedProduct);
+
+      if (result > 0) {
+        // Mettre à jour le produit courant
+        currentProduct.value = updatedProduct;
+      } else {
+        error.value = 'Échec de la mise à jour du produit';
+      }
+
+      return result;
+    } catch (e) {
+      debugPrint('Erreur lors de la mise à jour du produit: $e');
+      error.value = 'Erreur lors de la mise à jour: $e';
+      return -1;
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
   // Recherche des produits en local et en ligne
   Future<void> searchProduct(String query) async {
     isLoading.value = true;
@@ -178,6 +236,11 @@ class ProductService {
     } finally {
       isLoading.value = false;
     }
+  }
+
+  // reset du CurrentProduct
+  void resetCurrentProduct() {
+    currentProduct.value = null;
   }
 
   // Rechercher des produits en ligne

@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:listngo/models/product.dart';
 import 'package:listngo/services/product_service.dart';
 
+import '../../services/service_locator.dart';
 import '../widgets/custom_app_bar.dart';
 
 class ProductScreen extends StatefulWidget {
@@ -27,6 +28,7 @@ class _ProductScreenState extends State<ProductScreen> {
   };
 
   final ProductService _productService = ProductService();
+  final ProductService productServiceGetIt = getIt<ProductService>();
 
   Future<void> loadProductFromAPI() async {
     try {
@@ -38,6 +40,7 @@ class _ProductScreenState extends State<ProductScreen> {
       } else {
         setState(() {
           checkVisibility();
+          productServiceGetIt.currentProduct.value = product;
         });
       }
     } catch (e) {
@@ -50,9 +53,9 @@ class _ProductScreenState extends State<ProductScreen> {
     try {
       // Création d'un produit fictif que vous pouvez modifier
       final product = Product(
-        id: 99,
+        id: 2,
         barcode: 1234567890123,
-        name: "Mon Produit Local Test",
+        name: "Appli modifié",
         keywords: ["test", "local", "modifiable"],
         quantity: "500g",
         isApi: false,
@@ -60,11 +63,6 @@ class _ProductScreenState extends State<ProductScreen> {
         imagePath:
             "https://images.openfoodfacts.org/images/products/893/521/090/1767/front_fr.3.400.jpg",
         nutriScore: "A",
-        fat: "low",
-        saturatedFat: "moderate",
-        sugar: "high",
-        salt: "low",
-        createdAt: DateTime.now(),
       );
 
       // Mettre à jour le produit actuel
@@ -73,6 +71,7 @@ class _ProductScreenState extends State<ProductScreen> {
       // Mettre à jour les variables de visibilité
       setState(() {
         checkVisibility();
+        productServiceGetIt.currentProduct.value = product;
       });
 
       debugPrint('Produit local chargé avec succès');
