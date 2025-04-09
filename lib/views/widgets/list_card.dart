@@ -58,7 +58,10 @@ class _ListCardState extends State<ListCard> {
       child: Padding(
         padding: const EdgeInsets.all(8.0),
         child: InkWell(
-          onTap: () => context.push('/product'),
+          onTap: () {
+            _productListService.currentList.value = widget.productList;
+            context.push('/list');
+          },
           splashColor: Colors.transparent,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -88,10 +91,8 @@ class _ListCardState extends State<ListCard> {
                                 decoration: const InputDecoration(
                                   border: InputBorder.none,
                                   focusedBorder: InputBorder.none,
-                                  isDense: true, // Makes the field more compact
-                                  contentPadding:
-                                      EdgeInsets
-                                          .zero, // Removes internal padding
+                                  isDense: true,
+                                  contentPadding: EdgeInsets.zero,
                                 ),
                               )
                               : Text(

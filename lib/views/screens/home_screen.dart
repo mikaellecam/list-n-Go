@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:listngo/services/product_list_service.dart';
 import 'package:listngo/services/service_locator.dart';
+import 'package:listngo/views/widgets/custom_app_bar.dart';
 import 'package:listngo/views/widgets/shop_list_old_item.dart';
 
 import '../../models/product_list.dart';
@@ -33,11 +34,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 243, 243, 243),
-      appBar: AppBar(
-        title: Image.asset('assets/app_assets/list-n-go_logo.png', height: 50),
-        centerTitle: true,
-        backgroundColor: const Color.fromARGB(255, 243, 243, 243),
-      ),
+      appBar: CustomAppBar(),
       body: Column(
         children: [
           const SizedBox(height: 10),
