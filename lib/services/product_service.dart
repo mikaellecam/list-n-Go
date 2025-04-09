@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
@@ -64,10 +65,10 @@ class ProductService {
     }
   }
 
-  // Récupérer un produit par code-barres (local et en ligne)
   Future<Product?> getProductByBarcode(String barcode) async {
     isLoading.value = true;
     error.value = null;
+    Product? result;
 
     try {
       // Vérifier d'abord si le produit existe dans la base de données locale
@@ -80,6 +81,9 @@ class ProductService {
           debugPrint(
             'Produit trouvé dans la base de données locale: ${localProduct.name}',
           );
+          result = localProduct;
+          currentProduct.value =
+              localProduct; // Mettre à jour le notificateur de valeur
           return localProduct;
         }
       } catch (e) {
@@ -89,31 +93,50 @@ class ProductService {
       // Si non trouvé localement, chercher en ligne
       debugPrint('Produit non trouvé localement, recherche en ligne...');
       final url = '$baseUrl/$barcode.json';
+      debugPrint('URL de l\'API appelée: $url');
+
       final response = await http.get(Uri.parse(url));
+      debugPrint('Code de statut de la réponse: ${response.statusCode}');
 
       if (response.statusCode == 200) {
+        // Journal de la réponse brute pour le débogage
+        debugPrint(
+          'Corps de la réponse brute: ${response.body.substring(0, min(200, response.body.length))}...',
+        );
+
         // Parsing du json
         final jsonData = json.decode(response.body);
+        debugPrint('Statut JSON: ${jsonData['status']}');
 
         if (jsonData['status'] == 1) {
           final productData = jsonData['product'];
           final product = _mapToProduct(productData, barcode);
+          debugPrint('Produit mappé avec succès: ${product.name}');
 
           // Sauvegarder le produit dans la base de données locale
           await saveProduct(product);
 
+          result = product;
+          currentProduct.value =
+              product; // Mettre à jour le notificateur de valeur
           return product;
         } else {
           debugPrint('Produit non trouvé: ${jsonData['status_verbose']}');
+          error.value = 'Produit non trouvé: ${jsonData['status_verbose']}';
           return null;
         }
       } else {
         debugPrint('Erreur HTTP: ${response.statusCode}');
+        debugPrint('Corps de la réponse: ${response.body}');
+        error.value = 'Erreur HTTP: ${response.statusCode}';
         return null;
       }
     } catch (e) {
       debugPrint('Exception lors de la récupération du produit: $e');
+      error.value = 'Exception: $e';
       return null;
+    } finally {
+      isLoading.value = false;
     }
   }
 
@@ -214,6 +237,11 @@ class ProductService {
       imagePath = data['image_url'];
     }
 
+    String? quantity;
+    if (data['quantity'] != null) {
+      quantity = data['quantity'];
+    }
+
     // Nutri-Score (vérifier plusieurs champs possibles)
     String? nutriScore;
     if (data['nutriscore_grade'] != null) {
@@ -228,6 +256,7 @@ class ProductService {
       barcode: barcode,
       name: name,
       keywords: keywords,
+      quantity: quantity,
       isApi: true,
       imagePath: imagePath,
       nutriScore: nutriScore,
