@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:listngo/services/product_service.dart';
 import 'package:listngo/views/widgets/custom_app_bar.dart';
 
-import '../../services/database_service.dart';
 import '../../services/service_locator.dart';
 
 class CreateProductScreen extends StatefulWidget {
@@ -183,42 +182,6 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
                   padding: const EdgeInsets.only(bottom: 82),
                   child: Column(
                     children: [
-                      ElevatedButton(
-                        onPressed: () async {
-                          final dbService = DatabaseService.instance;
-                          final result =
-                              await dbService.getAllProductsAsString();
-                          print(result); // Affiche dans la console
-
-                          // Afficher dans une boîte de dialogue avec texte noir
-                          showDialog(
-                            context: context,
-                            builder:
-                                (context) => AlertDialog(
-                                  title: Text(
-                                    'Contenu de la base de données',
-                                    style: TextStyle(color: Colors.black),
-                                  ),
-                                  content: SingleChildScrollView(
-                                    child: Text(
-                                      result,
-                                      style: TextStyle(color: Colors.black),
-                                    ),
-                                  ),
-                                  actions: [
-                                    TextButton(
-                                      onPressed: () => Navigator.pop(context),
-                                      child: Text('Fermer'),
-                                      style: TextButton.styleFrom(
-                                        foregroundColor: Colors.black,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                          );
-                        },
-                        child: Text('Afficher les produits'),
-                      ),
                       Stack(
                         children: [
                           Container(
