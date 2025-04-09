@@ -19,6 +19,50 @@ class ProductService {
   final ValueNotifier<bool> isLoading = ValueNotifier(false);
   final ValueNotifier<String?> error = ValueNotifier(null);
 
+  //Création d'un produit en base
+  Future<int> createProduct({
+    required String name,
+    String? quantity,
+    List<String>? keywords,
+    String? nutriScore,
+  }) async {
+    isLoading.value = true;
+    error.value = null;
+
+    try {
+      final product = Product(
+        name: name,
+        quantity: quantity,
+        keywords: keywords,
+        nutriScore: nutriScore,
+        isApi: false,
+        // Produit créé manuellement
+        createdAt: DateTime.now(),
+      );
+
+      debugPrint('Création d\'un nouveau produit: ${product.name}');
+      final productId = await _db.insertProduct(product);
+
+      if (productId > 0) {
+        // Récupérer le produit complet avec l'ID
+        final createdProduct = await _db.getProductById(productId);
+        if (createdProduct != null) {
+          currentProduct.value = createdProduct;
+        }
+      } else {
+        error.value = 'Échec de la création du produit';
+      }
+
+      return productId;
+    } catch (e) {
+      debugPrint('Erreur lors de la création du produit: $e');
+      error.value = 'Erreur lors de la création: $e';
+      return -1;
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
   // Recherche des produits en local et en ligne
   Future<void> searchProduct(String query) async {
     isLoading.value = true;
