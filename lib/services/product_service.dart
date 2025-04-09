@@ -112,6 +112,7 @@ class ProductService {
   Future<Product?> getProductByBarcode(String barcode) async {
     isLoading.value = true;
     error.value = null;
+    Product? result;
 
     try {
       // Vérifier d'abord si le produit existe dans la base de données locale

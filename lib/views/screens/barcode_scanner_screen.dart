@@ -92,16 +92,13 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
               ),
               TextButton(
                 onPressed: () {
-                  // Here you would typically process the barcode
-                  // For example, search for the product or add it to your list
-
-                  // Return to previous screen with the barcode
+                  Navigator.of(context).pop();
                   context.pop(barcode);
                 },
-                child: const Text('Confirmer'),
                 style: TextButton.styleFrom(
                   foregroundColor: const Color.fromRGBO(247, 147, 76, 1.0),
                 ),
+                child: const Text('Confirmer'),
               ),
             ],
           ),

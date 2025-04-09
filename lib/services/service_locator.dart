@@ -14,4 +14,6 @@ Future<void> setupServiceLocator() async {
   getIt.registerLazySingleton<PermissionHelper>(() => PermissionHelper());
 
   getIt.registerLazySingleton<ProductService>(() => ProductService());
+
+  await getIt<ProductListService>().loadLists();
 }

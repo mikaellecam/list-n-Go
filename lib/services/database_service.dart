@@ -1,10 +1,12 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:flutter/material.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
 
+import '../models/list_product_relation.dart';
 import '../models/product.dart';
 import '../models/product_list.dart';
 
@@ -77,7 +79,6 @@ class DatabaseService {
         list_id INTEGER NOT NULL,
         product_id INTEGER NOT NULL,
         quantity REAL NOT NULL DEFAULT 1,
-        price REAL,
         is_checked INTEGER DEFAULT 0,
         position INTEGER DEFAULT 0,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -278,5 +279,165 @@ class DatabaseService {
   Future<int> deleteProduct(int id) async {
     final db = await database;
     return await db.delete('Products', where: 'id = ?', whereArgs: [id]);
+  }
+
+  Future<int> addProductToList(
+    int listId,
+    int productId, {
+    double quantity = 1.0,
+    double? price,
+    bool isChecked = false,
+    int position = 0,
+  }) async {
+    final db = await database;
+
+    try {
+      final List<Map<String, dynamic>> exisitingRelations = await db.query(
+        'ListProductRelation',
+        where: 'list_id = ? AND product_id = ?',
+        whereArgs: [listId, productId],
+      );
+
+      if (exisitingRelations.isNotEmpty) {
+        await db.update(
+          'ListProductRelation',
+          {
+            'quantity': quantity,
+            'price': price,
+            'is_checked': isChecked ? 1 : 0,
+            'position': position,
+          },
+          where: 'list_id = ? AND product_id = ?',
+          whereArgs: [listId, productId],
+        );
+        return 1;
+      } else {
+        final relation = ListProductRelation.createNew(
+          listId: listId,
+          productId: productId,
+          quantity: quantity,
+          isChecked: isChecked,
+          position: position,
+        );
+
+        await db.insert('ListProductRelation', relation.toMap());
+        return 1;
+      }
+    } catch (e) {
+      debugPrint('Error adding product to list: $e');
+      return -1;
+    }
+  }
+
+  Future<int> removeProductFromList(int listId, int productId) async {
+    final db = await database;
+
+    try {
+      return await db.delete(
+        'ListProductRelation',
+        where: 'list_id = ? AND product_id = ?',
+        whereArgs: [listId, productId],
+      );
+    } catch (e) {
+      debugPrint('Error removing product from list: $e');
+      return -1;
+    }
+  }
+
+  Future<ValueNotifier<List<Product>>> getProductsInList(int listId) async {
+    final db = await database;
+
+    try {
+      final List<Map<String, dynamic>> relations = await db.query(
+        'ListProductRelation',
+        where: 'list_id = ?',
+        whereArgs: [listId],
+      );
+
+      if (relations.isEmpty) {
+        return ValueNotifier([]);
+      }
+
+      ValueNotifier<List<Product>> products = ValueNotifier([]);
+
+      for (var relation in relations) {
+        final productId = relation['product_id'];
+
+        final List<Map<String, dynamic>> productMaps = await db.query(
+          'Products',
+          where: 'id = ?',
+          whereArgs: [productId],
+        );
+
+        if (productMaps.isNotEmpty) {
+          products.value.add(Product.fromMap(productMaps.first));
+        }
+      }
+
+      return products;
+    } catch (e) {
+      debugPrint('Error getting products in list: $e');
+      return ValueNotifier([]);
+    }
+  }
+
+  Future<Map<int, ListProductRelation>> getProductRelationsInList(
+    int listId,
+  ) async {
+    final db = await database;
+
+    try {
+      final List<Map<String, dynamic>> relations = await db.query(
+        'ListProductRelation',
+        where: 'list_id = ?',
+        whereArgs: [listId],
+      );
+
+      Map<int, ListProductRelation> result = {};
+
+      for (var relationMap in relations) {
+        final relation = ListProductRelation.fromMap(relationMap);
+        result[relation.productId] = relation;
+      }
+
+      return result;
+    } catch (e) {
+      debugPrint('Error getting product relations in list: $e');
+      return {};
+    }
+  }
+
+  Future<ProductList?> getProductListWithProducts(int listId) async {
+    final db = await database;
+
+    try {
+      final List<Map<String, dynamic>> listMaps = await db.query(
+        'Lists',
+        where: 'id = ?',
+        whereArgs: [listId],
+      );
+
+      if (listMaps.isEmpty) {
+        return null;
+      }
+
+      final productList = ProductList.fromMap(listMaps.first);
+
+      final products = await getProductsInList(listId);
+
+      final relations = await getProductRelationsInList(listId);
+
+      return ProductList(
+        id: productList.id,
+        name: productList.name,
+        createdAt: productList.createdAt,
+        updatedAt: productList.updatedAt,
+        products: products,
+        productRelations: relations,
+      );
+    } catch (e) {
+      debugPrint('Error getting product list with products: $e');
+      return null;
+    }
   }
 }

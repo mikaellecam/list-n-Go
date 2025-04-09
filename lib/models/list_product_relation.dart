@@ -1,32 +1,44 @@
 class ListProductRelation {
   final int listId;
   final int productId;
-  final double quantity;
-  final double? price;
-  final bool isChecked;
-  final int position;
-  final DateTime? createdAt;
+  double quantity;
+  bool isChecked;
+  int position;
+  final DateTime createdAt;
 
   ListProductRelation({
     required this.listId,
     required this.productId,
-    this.quantity = 1,
-    this.price,
+    this.quantity = 1.0,
     this.isChecked = false,
     this.position = 0,
-    this.createdAt,
-  });
+    DateTime? createdAt,
+  }) : createdAt = createdAt ?? DateTime.now();
+
+  factory ListProductRelation.createNew({
+    required int listId,
+    required int productId,
+    double quantity = 1.0,
+    bool isChecked = false,
+    int position = 0,
+  }) {
+    return ListProductRelation(
+      listId: listId,
+      productId: productId,
+      quantity: quantity,
+      isChecked: isChecked,
+      position: position,
+    );
+  }
 
   factory ListProductRelation.fromMap(Map<String, dynamic> map) {
     return ListProductRelation(
       listId: map['list_id'],
       productId: map['product_id'],
       quantity: map['quantity'] ?? 1.0,
-      price: map['price'],
       isChecked: map['is_checked'] == 1,
       position: map['position'] ?? 0,
-      createdAt:
-          map['created_at'] != null ? DateTime.parse(map['created_at']) : null,
+      createdAt: DateTime.parse(map['created_at']),
     );
   }
 
@@ -35,10 +47,9 @@ class ListProductRelation {
       'list_id': listId,
       'product_id': productId,
       'quantity': quantity,
-      'price': price,
       'is_checked': isChecked ? 1 : 0,
       'position': position,
-      'created_at': createdAt?.toIso8601String(),
+      'created_at': createdAt.toIso8601String(),
     };
   }
 }

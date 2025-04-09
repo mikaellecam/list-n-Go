@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:listngo/services/product_list_service.dart';
+import 'package:listngo/services/product_service.dart';
 import 'package:listngo/services/service_locator.dart';
 import 'package:listngo/views/widgets/custom_app_bar.dart';
 
+import '../../models/product.dart';
 import '../../models/product_list.dart';
 import '../../services/permission_helper.dart';
 import '../widgets/product_card.dart';
@@ -18,6 +20,7 @@ class ProductListScreen extends StatefulWidget {
 class _ProductListScreenState extends State<ProductListScreen> {
   late final TextEditingController _controller;
   final ProductListService productListService = getIt<ProductListService>();
+  final ProductService productService = getIt<ProductService>();
   bool _isRenaming = false;
   bool _isExpanded = false;
 
@@ -166,7 +169,18 @@ class _ProductListScreenState extends State<ProductListScreen> {
                     ],
                   ),
                 ),
-                ...List.generate(10, (_) => ProductCard()),
+                ValueListenableBuilder<List<Product>>(
+                  valueListenable:
+                      productListService.currentList.value!.products,
+                  builder: (context, products, child) {
+                    return Column(
+                      children:
+                          products
+                              .map((product) => ProductCard(product: product))
+                              .toList(),
+                    );
+                  },
+                ),
               ],
             ),
           ),
@@ -230,11 +244,17 @@ class _ProductListScreenState extends State<ProductListScreen> {
                                 await getIt<PermissionHelper>()
                                     .requestCameraPermission(context);
                             if (!hasPermission) return;
-                            final result = await context.push(
-                              '/barcode-scanner',
-                            );
-                            if (result != null && result is String) {
-                              print('Scanned barcode: $result');
+
+                            if (context.mounted) {
+                              final barcode = await context.push(
+                                '/barcode-scanner',
+                              );
+                              print("Barcode: $barcode");
+                              if (barcode != null && barcode is String) {
+                                Product? product = await productService
+                                    .getProductByBarcode(barcode);
+                                print("Product: $product");
+                              }
                             }
                           },
                           child: const Icon(
