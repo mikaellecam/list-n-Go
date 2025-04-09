@@ -177,375 +177,365 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
             child: Stack(
               fit: StackFit.expand,
               children: [
-                SingleChildScrollView(
-                  controller: _scrollController,
-                  padding: const EdgeInsets.only(bottom: 82),
-                  child: Column(
-                    children: [
-                      Stack(
-                        children: [
-                          Container(
-                            height: screenHeight * 0.25,
-                            width: double.infinity,
-                            child:
-                                _isEditing &&
-                                        productService
-                                                .currentProduct
-                                                .value
-                                                ?.imagePath !=
-                                            null
-                                    ? Image.network(
+                Column(
+                  children: [
+                    Stack(
+                      children: [
+                        Container(
+                          height: screenHeight * 0.25,
+                          width: double.infinity,
+                          child:
+                              _isEditing &&
                                       productService
-                                          .currentProduct
-                                          .value!
-                                          .imagePath!,
-                                      fit: BoxFit.contain,
-                                      errorBuilder:
-                                          (
-                                            context,
-                                            error,
-                                            stackTrace,
-                                          ) => Image.network(
-                                            'https://www.annuaire-bijoux.com/wp-content/themes/first-mag/img/noprew-related.jpg',
-                                            fit: BoxFit.contain,
-                                          ),
-                                    )
-                                    : Image.network(
-                                      'https://www.annuaire-bijoux.com/wp-content/themes/first-mag/img/noprew-related.jpg',
-                                      fit: BoxFit.contain,
-                                    ),
-                          ),
-                          Positioned(
-                            bottom: 10,
-                            right: 10,
-                            child: GestureDetector(
-                              onTap: () {
-                                print('Bouton pressé');
-                                // Logique pour sélectionner une image
-                              },
-                              child: Container(
-                                width: 50,
-                                height: 50,
-                                decoration: BoxDecoration(
-                                  color: Color.fromRGBO(247, 147, 76, 1.0),
-                                  shape: BoxShape.circle,
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black26,
-                                      blurRadius: 4,
-                                      offset: Offset(0, 2),
-                                    ),
-                                  ],
-                                ),
-                                child: Icon(
-                                  Icons.add,
-                                  color: Colors.white,
-                                  size: 30,
-                                ),
+                                              .currentProduct
+                                              .value
+                                              ?.imagePath !=
+                                          null
+                                  ? Image.network(
+                                    productService
+                                        .currentProduct
+                                        .value!
+                                        .imagePath!,
+                                    fit: BoxFit.contain,
+                                    errorBuilder:
+                                        (
+                                          context,
+                                          error,
+                                          stackTrace,
+                                        ) => Image.network(
+                                          'https://www.annuaire-bijoux.com/wp-content/themes/first-mag/img/noprew-related.jpg',
+                                          fit: BoxFit.contain,
+                                        ),
+                                  )
+                                  : Image.network(
+                                    'https://www.annuaire-bijoux.com/wp-content/themes/first-mag/img/noprew-related.jpg',
+                                    fit: BoxFit.contain,
+                                  ),
+                        ),
+                        Positioned(
+                          bottom: 10,
+                          right: 10,
+                          child: GestureDetector(
+                            onTap: () {
+                              print('Bouton pressé');
+                              // Logique pour sélectionner une image
+                            },
+                            child: Container(
+                              width: 50,
+                              height: 50,
+                              decoration: BoxDecoration(
+                                color: Color.fromRGBO(247, 147, 76, 1.0),
+                                shape: BoxShape.circle,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black26,
+                                    blurRadius: 4,
+                                    offset: Offset(0, 2),
+                                  ),
+                                ],
+                              ),
+                              child: Icon(
+                                Icons.add,
+                                color: Colors.white,
+                                size: 30,
                               ),
                             ),
                           ),
-                        ],
+                        ),
+                      ],
+                    ),
+                    Container(
+                      width: double.infinity,
+                      padding: EdgeInsets.only(
+                        top: 25,
+                        bottom: 60,
+                        left: 30,
+                        right: 15,
                       ),
-                      Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(30),
+                        color: Colors.white,
+                      ),
+                      child: Container(
                         width: double.infinity,
-                        padding: EdgeInsets.only(
-                          top: 25,
-                          bottom: 120,
-                          left: 30,
-                          right: 15,
-                        ),
-                        constraints: BoxConstraints(
-                          minHeight:
-                              constraints.maxHeight - screenHeight * 0.25 + 100,
-                        ),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(30),
-                          color: Colors.white,
-                        ),
-                        child: Container(
-                          width: double.infinity,
-                          child: Scrollbar(
-                            controller: _scrollController,
-                            thumbVisibility: true,
-                            thickness: 3,
-                            child: Container(
-                              padding: EdgeInsets.only(right: 20),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisAlignment: MainAxisAlignment.start,
-                                children: [
-                                  // Nom
-                                  Padding(
-                                    padding: EdgeInsets.only(bottom: 15),
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          'Nom : ',
-                                          style: TextStyle(
-                                            fontSize: 20,
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.black,
-                                            fontFamily: 'Lato',
-                                          ),
-                                        ),
-                                        SizedBox(height: 5),
-                                        Container(
-                                          padding: EdgeInsets.symmetric(
-                                            horizontal: 10,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            borderRadius: BorderRadius.circular(
-                                              10,
-                                            ),
-                                            color: Color.fromRGBO(
-                                              245,
-                                              245,
-                                              245,
-                                              1.0,
-                                            ),
-                                          ),
-                                          child: TextField(
-                                            controller: _nameController,
-                                            decoration: InputDecoration(
-                                              hintText:
-                                                  'Entrez le nom du produit',
-                                              hintStyle: TextStyle(
-                                                fontSize: 16,
-                                                fontFamily: 'Lato',
-                                                color: Colors.black,
-                                              ),
-                                              border: InputBorder.none,
-                                            ),
-                                            style: TextStyle(
-                                              fontSize: 18,
-                                              fontFamily: 'Lato',
-                                              color: Colors.black,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-
-                                  // Unité
-                                  Padding(
-                                    padding: EdgeInsets.only(bottom: 15),
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          'Unité (poids/volume/nombre) :',
-                                          style: TextStyle(
-                                            fontSize: 20,
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.black,
-                                            fontFamily: 'Lato',
-                                          ),
-                                        ),
-                                        SizedBox(height: 5),
-                                        Container(
-                                          padding: EdgeInsets.symmetric(
-                                            horizontal: 10,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            borderRadius: BorderRadius.circular(
-                                              10,
-                                            ),
-                                            color: Color.fromRGBO(
-                                              245,
-                                              245,
-                                              245,
-                                              1.0,
-                                            ),
-                                          ),
-                                          child: TextField(
-                                            controller: _quantityController,
-                                            decoration: InputDecoration(
-                                              hintText: 'Entrez l\'unité',
-                                              hintStyle: TextStyle(
-                                                fontSize: 16,
-                                                fontFamily: 'Lato',
-                                                color: Colors.black,
-                                              ),
-                                              border: InputBorder.none,
-                                            ),
-                                            style: TextStyle(
-                                              fontSize: 18,
-                                              fontFamily: 'Lato',
-                                              color: Colors.black,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-
-                                  // Mots-clés
-                                  Padding(
-                                    padding: EdgeInsets.only(bottom: 15),
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          'Mots-clés de recherche :',
-                                          style: TextStyle(
-                                            fontSize: 20,
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.black,
-                                            fontFamily: 'Lato',
-                                          ),
-                                        ),
-                                        SizedBox(height: 5),
-                                        Container(
-                                          padding: EdgeInsets.symmetric(
-                                            horizontal: 10,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            borderRadius: BorderRadius.circular(
-                                              10,
-                                            ),
-                                            color: Color.fromRGBO(
-                                              245,
-                                              245,
-                                              245,
-                                              1.0,
-                                            ),
-                                          ),
-                                          child: TextField(
-                                            controller: _keywordsController,
-                                            decoration: InputDecoration(
-                                              hintText:
-                                                  'Exemple : tomate, viande',
-                                              hintStyle: TextStyle(
-                                                fontSize: 16,
-                                                fontFamily: 'Lato',
-                                                color: Colors.black,
-                                              ),
-                                              border: InputBorder.none,
-                                            ),
-                                            style: TextStyle(
-                                              fontSize: 18,
-                                              fontFamily: 'Lato',
-                                              color: Colors.black,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-
-                                  // Nutri-score
-                                  Text(
-                                    'Nutri-score :',
-                                    style: TextStyle(
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.black,
-                                      fontFamily: 'Lato',
-                                    ),
-                                  ),
-                                  Container(
-                                    padding: EdgeInsets.symmetric(
-                                      horizontal: 10,
-                                    ),
-                                    margin: EdgeInsets.symmetric(vertical: 10),
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(10),
-                                      color: Color.fromRGBO(245, 245, 245, 1.0),
-                                    ),
-                                    child: DropdownButton<String>(
-                                      isExpanded: true,
-                                      hint: Text(
-                                        'Choisir une option',
+                        child: Scrollbar(
+                          controller: _scrollController,
+                          thumbVisibility: true,
+                          thickness: 3,
+                          child: Container(
+                            padding: EdgeInsets.only(right: 20),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              children: [
+                                // Nom
+                                Padding(
+                                  padding: EdgeInsets.only(bottom: 15),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Nom : ',
                                         style: TextStyle(
-                                          fontSize: 16,
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.black,
                                           fontFamily: 'Lato',
                                         ),
                                       ),
-                                      value:
-                                          valeurNutriscore == ''
-                                              ? null
-                                              : valeurNutriscore,
-                                      onChanged: (String? newValue) {
-                                        if (newValue != null) {
-                                          setState(() {
-                                            valeurNutriscore = newValue;
-                                          });
-                                        }
-                                      },
-                                      dropdownColor: Color.fromRGBO(
-                                        245,
-                                        245,
-                                        245,
-                                        1.0,
-                                      ),
-                                      style: TextStyle(
-                                        color: Colors.black,
-                                        fontSize: 18,
-                                        fontFamily: 'Lato',
-                                      ),
-                                      items:
-                                          <String>[
-                                            'Non concerné',
-                                            'A',
-                                            'B',
-                                            'C',
-                                            'D',
-                                            'E',
-                                          ].map<DropdownMenuItem<String>>((
-                                            String value,
-                                          ) {
-                                            return DropdownMenuItem<String>(
-                                              value: value,
-                                              child: Text(value),
-                                            );
-                                          }).toList(),
-                                    ),
-                                  ),
-                                  SizedBox(height: 15),
-                                  // Afficher seulement si en mode création, pas en édition
-                                  if (!_isEditing)
-                                    Row(
-                                      children: [
-                                        Checkbox(
-                                          value: _isChecked,
-                                          activeColor: Color.fromRGBO(
-                                            247,
-                                            147,
-                                            76,
+                                      SizedBox(height: 5),
+                                      Container(
+                                        padding: EdgeInsets.symmetric(
+                                          horizontal: 10,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          borderRadius: BorderRadius.circular(
+                                            10,
+                                          ),
+                                          color: Color.fromRGBO(
+                                            245,
+                                            245,
+                                            245,
                                             1.0,
                                           ),
-                                          checkColor: Colors.white,
-                                          onChanged: (bool? value) {
-                                            setState(() {
-                                              _isChecked = value ?? false;
-                                            });
-                                          },
                                         ),
-                                        Text(
-                                          'Ajouter directement dans la liste',
+                                        child: TextField(
+                                          controller: _nameController,
+                                          decoration: InputDecoration(
+                                            hintText:
+                                                'Entrez le nom du produit',
+                                            hintStyle: TextStyle(
+                                              fontSize: 16,
+                                              fontFamily: 'Lato',
+                                              color: Colors.black,
+                                            ),
+                                            border: InputBorder.none,
+                                          ),
                                           style: TextStyle(
-                                            fontSize: 16,
-                                            color: Colors.black,
+                                            fontSize: 18,
                                             fontFamily: 'Lato',
+                                            color: Colors.black,
                                           ),
                                         ),
-                                      ],
+                                      ),
+                                    ],
+                                  ),
+                                ),
+
+                                // Unité
+                                Padding(
+                                  padding: EdgeInsets.only(bottom: 15),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Unité (poids/volume/nombre) :',
+                                        style: TextStyle(
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.black,
+                                          fontFamily: 'Lato',
+                                        ),
+                                      ),
+                                      SizedBox(height: 5),
+                                      Container(
+                                        padding: EdgeInsets.symmetric(
+                                          horizontal: 10,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          borderRadius: BorderRadius.circular(
+                                            10,
+                                          ),
+                                          color: Color.fromRGBO(
+                                            245,
+                                            245,
+                                            245,
+                                            1.0,
+                                          ),
+                                        ),
+                                        child: TextField(
+                                          controller: _quantityController,
+                                          decoration: InputDecoration(
+                                            hintText: 'Entrez l\'unité',
+                                            hintStyle: TextStyle(
+                                              fontSize: 16,
+                                              fontFamily: 'Lato',
+                                              color: Colors.black,
+                                            ),
+                                            border: InputBorder.none,
+                                          ),
+                                          style: TextStyle(
+                                            fontSize: 18,
+                                            fontFamily: 'Lato',
+                                            color: Colors.black,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+
+                                // Mots-clés
+                                Padding(
+                                  padding: EdgeInsets.only(bottom: 15),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Mots-clés de recherche :',
+                                        style: TextStyle(
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.black,
+                                          fontFamily: 'Lato',
+                                        ),
+                                      ),
+                                      SizedBox(height: 5),
+                                      Container(
+                                        padding: EdgeInsets.symmetric(
+                                          horizontal: 10,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          borderRadius: BorderRadius.circular(
+                                            10,
+                                          ),
+                                          color: Color.fromRGBO(
+                                            245,
+                                            245,
+                                            245,
+                                            1.0,
+                                          ),
+                                        ),
+                                        child: TextField(
+                                          controller: _keywordsController,
+                                          decoration: InputDecoration(
+                                            hintText:
+                                                'Exemple : tomate, viande',
+                                            hintStyle: TextStyle(
+                                              fontSize: 16,
+                                              fontFamily: 'Lato',
+                                              color: Colors.black,
+                                            ),
+                                            border: InputBorder.none,
+                                          ),
+                                          style: TextStyle(
+                                            fontSize: 18,
+                                            fontFamily: 'Lato',
+                                            color: Colors.black,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+
+                                // Nutri-score
+                                Text(
+                                  'Nutri-score :',
+                                  style: TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black,
+                                    fontFamily: 'Lato',
+                                  ),
+                                ),
+                                Container(
+                                  padding: EdgeInsets.symmetric(horizontal: 10),
+                                  margin: EdgeInsets.symmetric(vertical: 10),
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(10),
+                                    color: Color.fromRGBO(245, 245, 245, 1.0),
+                                  ),
+                                  child: DropdownButton<String>(
+                                    isExpanded: true,
+                                    hint: Text(
+                                      'Choisir une option',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontFamily: 'Lato',
+                                      ),
                                     ),
-                                  SizedBox(height: 30),
-                                ],
-                              ),
+                                    value:
+                                        valeurNutriscore == ''
+                                            ? null
+                                            : valeurNutriscore,
+                                    onChanged: (String? newValue) {
+                                      if (newValue != null) {
+                                        setState(() {
+                                          valeurNutriscore = newValue;
+                                        });
+                                      }
+                                    },
+                                    dropdownColor: Color.fromRGBO(
+                                      245,
+                                      245,
+                                      245,
+                                      1.0,
+                                    ),
+                                    style: TextStyle(
+                                      color: Colors.black,
+                                      fontSize: 18,
+                                      fontFamily: 'Lato',
+                                    ),
+                                    items:
+                                        <String>[
+                                          'Non concerné',
+                                          'A',
+                                          'B',
+                                          'C',
+                                          'D',
+                                          'E',
+                                        ].map<DropdownMenuItem<String>>((
+                                          String value,
+                                        ) {
+                                          return DropdownMenuItem<String>(
+                                            value: value,
+                                            child: Text(value),
+                                          );
+                                        }).toList(),
+                                  ),
+                                ),
+                                SizedBox(height: 15),
+                                // Afficher seulement si en mode création, pas en édition
+                                if (!_isEditing)
+                                  Row(
+                                    children: [
+                                      Checkbox(
+                                        value: _isChecked,
+                                        activeColor: Color.fromRGBO(
+                                          247,
+                                          147,
+                                          76,
+                                          1.0,
+                                        ),
+                                        checkColor: Colors.white,
+                                        onChanged: (bool? value) {
+                                          setState(() {
+                                            _isChecked = value ?? false;
+                                          });
+                                        },
+                                      ),
+                                      Text(
+                                        'Ajouter directement dans la liste',
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          color: Colors.black,
+                                          fontFamily: 'Lato',
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                SizedBox(height: 30),
+                              ],
                             ),
                           ),
                         ),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
 
                 // Bouton fixe en bas de l'écran

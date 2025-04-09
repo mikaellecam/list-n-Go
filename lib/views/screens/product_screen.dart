@@ -14,8 +14,6 @@ class ProductScreen extends StatefulWidget {
 }
 
 class _ProductScreenState extends State<ProductScreen> {
-  bool inModification = false;
-
   // Utiliser un Map pour gérer la visibilité de tous les champs
   Map<String, bool> visibilityMap = {
     'nutriscore': false,
@@ -27,65 +25,10 @@ class _ProductScreenState extends State<ProductScreen> {
     'salt': false,
   };
 
-  final ProductService _productService = ProductService();
-  final ProductService productServiceGetIt = getIt<ProductService>();
-
-  Future<void> loadProductFromAPI() async {
-    try {
-      final String barcode = "8852018101024";
-      final product = await _productService.getProductByBarcode(barcode);
-
-      if (product == null) {
-        debugPrint('Produit non trouvé pour ce code-barres: $barcode');
-      } else {
-        setState(() {
-          checkVisibility();
-          productServiceGetIt.currentProduct.value = product;
-        });
-      }
-    } catch (e) {
-      debugPrint('Erreur lors du chargement du produit depuis l\'API: $e');
-    }
-  }
-
-  // Méthode pour charger un produit fictif modifiable
-  void loadLocalProduct() {
-    try {
-      // Création d'un produit fictif que vous pouvez modifier
-      final product = Product(
-        id: 2,
-        barcode: 1234567890123,
-        name: "Appli modifié",
-        keywords: ["test", "local", "modifiable"],
-        quantity: "500g",
-        isApi: false,
-        // Important: false pour pouvoir modifier
-        imagePath:
-            "https://images.openfoodfacts.org/images/products/893/521/090/1767/front_fr.3.400.jpg",
-        nutriScore: "A",
-        fat: 11.2,
-        saturatedFat: 11.2,
-        salt: 5,
-        sugar: 56.3,
-      );
-
-      // Mettre à jour le produit actuel
-      _productService.currentProduct.value = product;
-
-      // Mettre à jour les variables de visibilité
-      setState(() {
-        checkVisibility();
-        productServiceGetIt.currentProduct.value = product;
-      });
-
-      debugPrint('Produit local chargé avec succès');
-    } catch (e) {
-      debugPrint('Erreur lors du chargement du produit local: $e');
-    }
-  }
+  final ProductService productService = getIt<ProductService>();
 
   void checkVisibility() {
-    final product = _productService.currentProduct.value;
+    final product = productService.currentProduct.value;
     if (product == null) return;
 
     // Vérification de Nutriscore
@@ -113,9 +56,6 @@ class _ProductScreenState extends State<ProductScreen> {
   @override
   void initState() {
     super.initState();
-    loadProductFromAPI();
-    //loadLocalProduct();
-    //_productService = getIt<ProductService>();
   }
 
   @override
@@ -126,7 +66,7 @@ class _ProductScreenState extends State<ProductScreen> {
       backgroundColor: const Color.fromARGB(255, 243, 243, 243),
       appBar: CustomAppBar(),
       body: ValueListenableBuilder<Product?>(
-        valueListenable: _productService.currentProduct,
+        valueListenable: productService.currentProduct,
         builder: (context, product, child) {
           if (product == null) {
             return const Center(
@@ -138,226 +78,108 @@ class _ProductScreenState extends State<ProductScreen> {
 
           return LayoutBuilder(
             builder: (context, constraints) {
-              return Container(
-                height: constraints.maxHeight,
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    SingleChildScrollView(
-                      padding: const EdgeInsets.only(
-                        bottom: 82,
-                      ), // Espace pour le bouton
-                      child: Column(
-                        children: [
-                          // Image en haut
-                          Container(
-                            height: screenHeight * 0.25,
-                            width: double.infinity,
-                            child:
-                                _productService
-                                                .currentProduct
-                                                .value!
-                                                .imagePath !=
-                                            null &&
-                                        _productService
-                                            .currentProduct
-                                            .value!
-                                            .imagePath!
-                                            .isNotEmpty
-                                    ? Image.network(
-                                      _productService
-                                          .currentProduct
-                                          .value!
-                                          .imagePath!,
-                                      fit: BoxFit.contain,
-                                      errorBuilder: (
-                                        context,
-                                        error,
-                                        stackTrace,
-                                      ) {
-                                        return const Icon(
-                                          Icons.image_not_supported,
-                                          size: 64,
-                                          color: Colors.grey,
-                                        );
-                                      },
-                                    )
-                                    : const Icon(
-                                      Icons.image_not_supported,
-                                      size: 64,
-                                      color: Colors.grey,
-                                    ),
+              return Stack(
+                fit: StackFit.expand,
+                children: [
+                  // Contenu défilable
+                  SingleChildScrollView(
+                    // Espace pour le bouton fixe en bas
+                    padding: const EdgeInsets.only(bottom: 82),
+                    child: Column(
+                      children: [
+                        // Image en haut
+                        Container(
+                          height: screenHeight * 0.25,
+                          width: double.infinity,
+                          child:
+                              product.imagePath != null &&
+                                      product.imagePath!.isNotEmpty
+                                  ? Image.network(
+                                    product.imagePath!,
+                                    fit: BoxFit.contain,
+                                    errorBuilder: (context, error, stackTrace) {
+                                      return const Icon(
+                                        Icons.image_not_supported,
+                                        size: 64,
+                                        color: Colors.grey,
+                                      );
+                                    },
+                                  )
+                                  : const Icon(
+                                    Icons.image_not_supported,
+                                    size: 64,
+                                    color: Colors.grey,
+                                  ),
+                        ),
+
+                        // Container avec les détails du produit avec coins arrondis
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.only(
+                            top: 25,
+                            bottom: 50,
+                            left: 30,
+                            right: 15,
                           ),
-
-                          // Container avec les détails du produit avec coins arrondis
-                          Container(
-                            width: double.infinity,
-                            padding: EdgeInsets.only(
-                              top: 25,
-                              bottom: 120,
-                              // Beaucoup d'espace en bas pour dépasser le bouton
-                              left: 30,
-                              right: 15,
-                            ),
-                            constraints: BoxConstraints(
-                              minHeight:
-                                  constraints.maxHeight -
-                                  screenHeight * 0.25 +
-                                  100,
-                            ),
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(30),
-                              color: Colors.white,
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                // Nom du produit et boutons d'édition
-                                Wrap(
-                                  alignment: WrapAlignment.start,
-                                  crossAxisAlignment: WrapCrossAlignment.center,
-                                  children: [
-                                    Text(
-                                      product.name,
-                                      style: const TextStyle(
-                                        fontSize: 25,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.black,
-                                        fontFamily: 'Lato',
-                                      ),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(30),
+                            color: Colors.white,
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // Nom du produit et boutons d'édition
+                              Wrap(
+                                alignment: WrapAlignment.start,
+                                crossAxisAlignment: WrapCrossAlignment.center,
+                                children: [
+                                  Text(
+                                    product.name,
+                                    style: const TextStyle(
+                                      fontSize: 25,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.black,
+                                      fontFamily: 'Lato',
                                     ),
-                                    _productService.currentProduct.value!.isApi
-                                        ? SizedBox.shrink()
-                                        : IconButton(
-                                          icon: Icon(
-                                            Icons.edit,
-                                            color: Color.fromRGBO(
-                                              247,
-                                              147,
-                                              76,
-                                              1.0,
-                                            ),
-                                          ),
-                                          onPressed: () {
-                                            context.push('/create-product');
-                                          },
-                                        ),
-                                    _productService.currentProduct.value!.isApi
-                                        ? SizedBox.shrink()
-                                        : IconButton(
-                                          icon: const Icon(Icons.delete),
-                                          onPressed: () {
-                                            // Action de suppression
-                                          },
-                                        ),
-                                  ],
-                                ),
-
-                                const SizedBox(height: 30),
-
-                                // Unité (poids/volume/litre)
-                                if (visibilityMap['quantity']!)
-                                  Row(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.baseline,
-                                    textBaseline: TextBaseline.alphabetic,
-                                    children: [
-                                      const Text(
-                                        'Unité ',
-                                        style: TextStyle(
-                                          fontSize: 20,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.black,
-                                          fontFamily: 'Lato',
-                                        ),
-                                      ),
-                                      const Text(
-                                        '(poids/volume/litre) ',
-                                        style: TextStyle(
-                                          fontSize: 14,
-                                          color: Colors.black,
-                                          fontFamily: 'Lato',
-                                        ),
-                                      ),
-                                      const Text(
-                                        ':',
-                                        style: TextStyle(
-                                          fontSize: 20,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.black,
-                                          fontFamily: 'Lato',
-                                        ),
-                                      ),
-                                      // Utilisation d'Expanded pour occuper l'espace restant
-                                      Expanded(
-                                        child: Padding(
-                                          padding: const EdgeInsets.fromLTRB(
-                                            0,
-                                            0,
-                                            75,
-                                            0,
-                                          ),
-                                          child: Text(
-                                            _productService
-                                                .currentProduct
-                                                .value!
-                                                .quantity!,
-                                            textAlign: TextAlign.right,
-                                            style: const TextStyle(
-                                              fontSize: 20,
-                                              fontWeight: FontWeight.bold,
-                                              color: Colors.black,
-                                              fontFamily: 'Lato',
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ],
                                   ),
-
-                                const SizedBox(height: 30),
-
-                                // Nutri-Score (à condition qu'il soit visible)
-                                if (visibilityMap['nutriscore']!)
-                                  Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      const Text(
-                                        'Nutri-Score :',
-                                        style: TextStyle(
-                                          fontSize: 20,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.black,
-                                          fontFamily: 'Lato',
-                                        ),
-                                      ),
-                                      Padding(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 30,
-                                        ),
-                                        child: SizedBox(
-                                          width: 170,
-                                          child: _buildNutriScoreImage(
-                                            _productService
-                                                .currentProduct
-                                                .value!
-                                                .nutriScore!,
+                                  product.isApi
+                                      ? const SizedBox.shrink()
+                                      : IconButton(
+                                        icon: const Icon(
+                                          Icons.edit,
+                                          color: Color.fromRGBO(
+                                            247,
+                                            147,
+                                            76,
+                                            1.0,
                                           ),
                                         ),
+                                        onPressed: () {
+                                          context.push('/create-product');
+                                        },
                                       ),
-                                    ],
-                                  ),
+                                  product.isApi
+                                      ? const SizedBox.shrink()
+                                      : IconButton(
+                                        icon: const Icon(Icons.delete),
+                                        onPressed: () {
+                                          // Action de suppression
+                                        },
+                                      ),
+                                ],
+                              ),
 
-                                // SECTION - Valeurs nutritionnelles (conditionnelle)
-                                if (visibilityMap['nutritionalValues']!) ...[
-                                  const SizedBox(height: 30),
+                              const SizedBox(height: 30),
 
-                                  // Titre de la section
-                                  const Padding(
-                                    padding: EdgeInsets.only(bottom: 15),
-                                    child: Text(
-                                      'Valeurs nutritionnelles :',
+                              // Unité (poids/volume/litre)
+                              if (visibilityMap['quantity']!)
+                                Row(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.baseline,
+                                  textBaseline: TextBaseline.alphabetic,
+                                  children: [
+                                    const Text(
+                                      'Unité ',
                                       style: TextStyle(
                                         fontSize: 20,
                                         fontWeight: FontWeight.bold,
@@ -365,129 +187,203 @@ class _ProductScreenState extends State<ProductScreen> {
                                         fontFamily: 'Lato',
                                       ),
                                     ),
-                                  ),
-
-                                  // Conteneur pour les indicateurs nutritionnels en style de liste
-                                  Container(
-                                    width: double.infinity,
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 5,
+                                    const Text(
+                                      '(poids/volume/litre) ',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: Colors.black,
+                                        fontFamily: 'Lato',
+                                      ),
                                     ),
-                                    child: Column(
-                                      children: [
-                                        // Matières grasses (Fat)
-                                        if (visibilityMap['fat']!) ...[
-                                          _buildNutrientIndicator(
-                                            'Matières grasses',
-                                            _productService
-                                                .currentProduct
-                                                .value
-                                                ?.fat
-                                                .toString(),
+                                    const Text(
+                                      ':',
+                                      style: TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.black,
+                                        fontFamily: 'Lato',
+                                      ),
+                                    ),
+                                    // Utilisation d'Expanded pour occuper l'espace restant
+                                    Expanded(
+                                      child: Padding(
+                                        padding: const EdgeInsets.fromLTRB(
+                                          0,
+                                          0,
+                                          75,
+                                          0,
+                                        ),
+                                        child: Text(
+                                          product.quantity!,
+                                          textAlign: TextAlign.right,
+                                          style: const TextStyle(
+                                            fontSize: 20,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.black,
+                                            fontFamily: 'Lato',
                                           ),
-                                          const Divider(height: 24),
-                                        ],
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
 
-                                        // Acides gras saturés (Saturated Fat)
-                                        if (visibilityMap['saturatedFat']!) ...[
-                                          _buildNutrientIndicator(
-                                            'Acides gras saturés',
-                                            _productService
-                                                .currentProduct
-                                                .value
-                                                ?.saturatedFat
-                                                .toString(),
-                                          ),
-                                          if (visibilityMap['sugar']! ||
-                                              visibilityMap['salt']!)
-                                            const Divider(height: 24),
-                                        ],
+                              if (visibilityMap['quantity']!)
+                                const SizedBox(height: 30),
 
-                                        // Sucres (Sugar)
-                                        if (visibilityMap['sugar']!) ...[
-                                          _buildNutrientIndicator(
-                                            'Sucres',
-                                            _productService
-                                                .currentProduct
-                                                .value
-                                                ?.sugar
-                                                .toString(),
-                                          ),
-                                          if (visibilityMap['salt']!)
-                                            const Divider(height: 24),
-                                        ],
+                              // Nutri-Score (à condition qu'il soit visible)
+                              if (visibilityMap['nutriscore']!)
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    const Text(
+                                      'Nutri-Score :',
+                                      style: TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.black,
+                                        fontFamily: 'Lato',
+                                      ),
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 30,
+                                      ),
+                                      child: SizedBox(
+                                        width: 170,
+                                        child: _buildNutriScoreImage(
+                                          product.nutriScore!,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
 
-                                        // Sel (Salt)
-                                        if (visibilityMap['salt']!)
-                                          _buildNutrientIndicator(
-                                            'Sel',
-                                            _productService
-                                                .currentProduct
-                                                .value
-                                                ?.salt
-                                                .toString(),
-                                          ),
+                              if (visibilityMap['nutriscore']! &&
+                                  visibilityMap['nutritionalValues']!)
+                                const SizedBox(height: 30),
+
+                              // SECTION - Valeurs nutritionnelles (conditionnelle)
+                              if (visibilityMap['nutritionalValues']!) ...[
+                                // Titre de la section
+                                const Padding(
+                                  padding: EdgeInsets.only(bottom: 15),
+                                  child: Text(
+                                    'Valeurs nutritionnelles :',
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.black,
+                                      fontFamily: 'Lato',
+                                    ),
+                                  ),
+                                ),
+
+                                // Conteneur pour les indicateurs nutritionnels en style de liste
+                                Container(
+                                  width: double.infinity,
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 5,
+                                  ),
+                                  child: Column(
+                                    children: [
+                                      // Matières grasses (Fat)
+                                      if (visibilityMap['fat']!) ...[
+                                        _buildNutrientIndicator(
+                                          'Matières grasses',
+                                          product.fat?.toString(),
+                                        ),
+                                        const Divider(height: 24),
                                       ],
-                                    ),
+
+                                      // Acides gras saturés (Saturated Fat)
+                                      if (visibilityMap['saturatedFat']!) ...[
+                                        _buildNutrientIndicator(
+                                          'Acides gras saturés',
+                                          product.saturatedFat?.toString(),
+                                        ),
+                                        if (visibilityMap['sugar']! ||
+                                            visibilityMap['salt']!)
+                                          const Divider(height: 24),
+                                      ],
+
+                                      // Sucres (Sugar)
+                                      if (visibilityMap['sugar']!) ...[
+                                        _buildNutrientIndicator(
+                                          'Sucres',
+                                          product.sugar?.toString(),
+                                        ),
+                                        if (visibilityMap['salt']!)
+                                          const Divider(height: 24),
+                                      ],
+
+                                      // Sel (Salt)
+                                      if (visibilityMap['salt']!)
+                                        _buildNutrientIndicator(
+                                          'Sel',
+                                          product.salt?.toString(),
+                                        ),
+                                    ],
                                   ),
-                                ],
+                                ),
                               ],
-                            ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // Bouton fixe en bas de l'écran
+                  Positioned(
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(16.0),
+                      decoration: const BoxDecoration(
+                        color: Colors.white,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black12,
+                            offset: Offset(0, -2),
+                            blurRadius: 4.0,
                           ),
                         ],
                       ),
-                    ),
-
-                    // Bouton fixe en bas de l'écran
-                    Positioned(
-                      left: 0,
-                      right: 0,
-                      bottom: 0,
-                      child: Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(16.0),
-                        decoration: const BoxDecoration(
-                          color: Colors.white,
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black12,
-                              offset: Offset(0, -2),
-                              blurRadius: 4.0,
+                      child: SizedBox(
+                        height: 50,
+                        child: ElevatedButton(
+                          onPressed: () {
+                            // Action pour ajouter à la liste
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color.fromRGBO(
+                              247,
+                              147,
+                              76,
+                              1.0,
                             ),
-                          ],
-                        ),
-                        child: SizedBox(
-                          height: 50,
-                          child: ElevatedButton(
-                            onPressed: () {
-                              // Action pour ajouter à la liste
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color.fromRGBO(
-                                247,
-                                147,
-                                76,
-                                1.0,
-                              ),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(25.0),
-                              ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(25.0),
                             ),
-                            child: const Text(
-                              'Ajouter à la liste',
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                                fontFamily: 'Lato',
-                              ),
+                          ),
+                          child: const Text(
+                            'Ajouter à la liste',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                              fontFamily: 'Lato',
                             ),
                           ),
                         ),
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               );
             },
           );
@@ -678,10 +574,5 @@ class _ProductScreenState extends State<ProductScreen> {
         );
       },
     );
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
   }
 }
