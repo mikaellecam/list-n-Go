@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:listngo/models/product.dart';
 import 'package:listngo/services/product_service.dart';
+
+import '../widgets/custom_app_bar.dart';
 
 class ProductScreen extends StatefulWidget {
   const ProductScreen({Key? key}) : super(key: key);
@@ -10,7 +13,7 @@ class ProductScreen extends StatefulWidget {
 }
 
 class _ProductScreenState extends State<ProductScreen> {
-  int _quantitySelected = 1;
+  bool inModification = false;
   bool visibleNutriscore = false;
   bool visibleQuantity = false;
   final ProductService _productService = ProductService();
@@ -59,7 +62,7 @@ class _ProductScreenState extends State<ProductScreen> {
     final screenHeight = MediaQuery.of(context).size.height;
 
     return Scaffold(
-      appBar: AppBar(title: const Text("Détails du produit")),
+      appBar: CustomAppBar(),
       // Occuper tout l'espace vertical disponible
       body: ValueListenableBuilder<Product?>(
         valueListenable: _productService.currentProduct,
@@ -182,6 +185,11 @@ class _ProductScreenState extends State<ProductScreen> {
                                             : IconButton(
                                               icon: const Icon(Icons.delete),
                                               onPressed: () {
+                                                setState(() {
+                                                  context.pushNamed(
+                                                    "/create-product",
+                                                  );
+                                                });
                                                 // Action de suppression
                                               },
                                             ),
@@ -294,95 +302,6 @@ class _ProductScreenState extends State<ProductScreen> {
                                     ),
                                   ],
                                 ),
-
-                                const SizedBox(height: 40),
-
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 10.0,
-                                      ),
-                                      child: Container(
-                                        width: 40,
-                                        height: 40,
-                                        child: IconButton(
-                                          padding: EdgeInsets.zero,
-                                          constraints: BoxConstraints(),
-                                          icon: const Icon(
-                                            Icons.remove,
-                                            color: Colors.grey,
-                                            size: 30,
-                                          ),
-                                          onPressed: () {
-                                            setState(() {
-                                              if (_quantitySelected > 0) {
-                                                _quantitySelected--;
-                                              }
-                                            });
-                                          },
-                                        ),
-                                      ),
-                                    ),
-                                    Text(
-                                      '$_quantitySelected',
-                                      style: TextStyle(
-                                        color: Colors.black,
-                                        fontSize: 24,
-                                        fontFamily: 'Lato',
-                                      ),
-                                    ),
-                                    Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 15.0,
-                                      ),
-                                      child: Container(
-                                        width: 40,
-                                        height: 40,
-                                        decoration: BoxDecoration(
-                                          color: Color.fromRGBO(
-                                            247,
-                                            147,
-                                            76,
-                                            1.0,
-                                          ),
-                                          shape: BoxShape.circle,
-                                        ),
-                                        child: IconButton(
-                                          padding: EdgeInsets.zero,
-                                          constraints: BoxConstraints(),
-                                          icon: const Icon(
-                                            Icons.add,
-                                            color: Colors.white,
-                                            size: 30,
-                                          ),
-                                          onPressed: () {
-                                            setState(() {
-                                              _quantitySelected++;
-                                            });
-                                          },
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-
-                                // Afficher le code-barres s'il est disponible
-                                if (product.barcode != null)
-                                  Padding(
-                                    padding: const EdgeInsets.only(top: 30.0),
-                                    child: Center(
-                                      child: Text(
-                                        'Code-barres: ${product.barcode}',
-                                        style: const TextStyle(
-                                          fontSize: 14,
-                                          color: Colors.grey,
-                                          fontFamily: 'Lato',
-                                        ),
-                                      ),
-                                    ),
-                                  ),
                               ],
                             ),
                           ),
