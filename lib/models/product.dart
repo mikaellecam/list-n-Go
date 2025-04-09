@@ -8,10 +8,10 @@ class Product {
   final DateTime? date;
   final String? imagePath;
   final String? nutriScore;
-  final String? fat;
-  final String? saturatedFat;
-  final String? sugar;
-  final String? salt;
+  final double? fat;
+  final double? saturatedFat;
+  final double? sugar;
+  final double? salt;
   final DateTime? createdAt;
 
   Product({

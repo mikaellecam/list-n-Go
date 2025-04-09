@@ -1,30 +1,172 @@
 import 'package:flutter/material.dart';
+import 'package:listngo/services/product_service.dart';
 import 'package:listngo/views/widgets/custom_app_bar.dart';
 
+import '../../services/database_service.dart';
+import '../../services/service_locator.dart';
+
 class CreateProductScreen extends StatefulWidget {
-  const CreateProductScreen({super.key});
+  const CreateProductScreen({super.key, this.customTitle});
+
+  final String? customTitle;
 
   @override
   State<CreateProductScreen> createState() => _CreateProductScreenState();
 }
 
 class _CreateProductScreenState extends State<CreateProductScreen> {
+  final ProductService productService = getIt<ProductService>();
+  bool _isLoading = false;
   String valeurNutriscore = '';
   bool _isChecked = false;
+  bool _isEditing = false;
+  int? _productId;
 
-  // Ajout d'un ScrollController pour le Scrollbar
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _quantityController = TextEditingController();
+  final TextEditingController _keywordsController = TextEditingController();
+
   final ScrollController _scrollController = ScrollController();
 
   @override
+  void initState() {
+    super.initState();
+    // Écouter les changements dans l'état de chargement du service
+    productService.isLoading.addListener(_updateLoadingState);
+    // Écouter les erreurs du service
+    productService.error.addListener(_showError);
+
+    // Vérifier si un produit est déjà sélectionné pour modification
+    _loadCurrentProduct();
+  }
+
+  void _loadCurrentProduct() {
+    if (productService.currentProduct.value != null) {
+      final product = productService.currentProduct.value!;
+      _isEditing = true;
+      _productId = product.id;
+
+      // Remplir les champs avec les valeurs du produit
+      _nameController.text = product.name;
+
+      if (product.quantity != null) {
+        _quantityController.text = product.quantity!;
+      }
+
+      if (product.keywords != null && product.keywords!.isNotEmpty) {
+        _keywordsController.text = product.keywords!.join(', ');
+      }
+
+      if (product.nutriScore != null) {
+        setState(() {
+          valeurNutriscore = product.nutriScore!;
+        });
+      }
+    }
+  }
+
+  void _updateLoadingState() {
+    if (mounted) {
+      setState(() {
+        _isLoading = productService.isLoading.value;
+      });
+    }
+  }
+
+  void _showError() {
+    final errorMessage = productService.error.value;
+    if (errorMessage != null && errorMessage.isNotEmpty && mounted) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(errorMessage)));
+    }
+  }
+
+  @override
   void dispose() {
-    // Libérer les ressources du ScrollController à la destruction du widget
+    _nameController.dispose();
+    _quantityController.dispose();
+    _keywordsController.dispose();
     _scrollController.dispose();
+    productService.isLoading.removeListener(_updateLoadingState);
+    productService.error.removeListener(_showError);
+
+    // Ne pas réinitialiser le produit courant si on est en mode édition
+    // pour permettre l'utilisation dans d'autres écrans
+    if (!_isEditing) {
+      productService.resetCurrentProduct();
+    }
+
     super.dispose();
+  }
+
+  Future<void> _saveProduct() async {
+    final name = _nameController.text.trim();
+    if (name.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Le nom du produit est requis')),
+      );
+      return;
+    }
+
+    final quantity = _quantityController.text.trim();
+    final keywordsText = _keywordsController.text.trim();
+    final List<String> keywordsList =
+        keywordsText.isEmpty
+            ? []
+            : keywordsText.split(',').map((k) => k.trim()).toList();
+
+    int resultId;
+
+    if (_isEditing && _productId != null) {
+      resultId = await productService.updateProduct(
+        id: _productId!,
+        name: name,
+        quantity: quantity.isEmpty ? null : quantity,
+        keywords: keywordsList.isEmpty ? null : keywordsList,
+        nutriScore: valeurNutriscore.isEmpty ? null : valeurNutriscore,
+      );
+
+      if (resultId > 0) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Produit mis à jour avec succès')),
+        );
+        Navigator.of(context).pop(true);
+      }
+    } else {
+      // Créer un nouveau produit
+      resultId = await productService.createProduct(
+        name: name,
+        quantity: quantity.isEmpty ? null : quantity,
+        keywords: keywordsList.isEmpty ? null : keywordsList,
+        nutriScore: valeurNutriscore.isEmpty ? null : valeurNutriscore,
+      );
+
+      if (resultId > 0) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Produit créé avec succès')),
+        );
+
+        // Si l'utilisateur a coché "Ajouter directement dans la liste"
+        if (_isChecked) {
+          // Logique pour ajouter dans la liste active
+          // Cette partie devra être complétée selon vos besoins
+        }
+
+        Navigator.of(context).pop(true);
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
+    final appBarTitle =
+        widget.customTitle ??
+        (_isEditing ? 'Modifier le produit' : 'Créer un produit');
+    final buttonText = _isEditing ? 'Mettre à jour' : 'Créer';
 
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 243, 243, 243),
@@ -37,41 +179,105 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
               fit: StackFit.expand,
               children: [
                 SingleChildScrollView(
-                  // Ajout du controller à SingleChildScrollView
                   controller: _scrollController,
-                  padding: const EdgeInsets.only(
-                    bottom: 82,
-                  ), // Espace pour le bouton
+                  padding: const EdgeInsets.only(bottom: 82),
                   child: Column(
                     children: [
+                      ElevatedButton(
+                        onPressed: () async {
+                          final dbService = DatabaseService.instance;
+                          final result =
+                              await dbService.getAllProductsAsString();
+                          print(result); // Affiche dans la console
+
+                          // Afficher dans une boîte de dialogue avec texte noir
+                          showDialog(
+                            context: context,
+                            builder:
+                                (context) => AlertDialog(
+                                  title: Text(
+                                    'Contenu de la base de données',
+                                    style: TextStyle(color: Colors.black),
+                                  ),
+                                  content: SingleChildScrollView(
+                                    child: Text(
+                                      result,
+                                      style: TextStyle(color: Colors.black),
+                                    ),
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () => Navigator.pop(context),
+                                      child: Text('Fermer'),
+                                      style: TextButton.styleFrom(
+                                        foregroundColor: Colors.black,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                          );
+                        },
+                        child: Text('Afficher les produits'),
+                      ),
                       Stack(
                         children: [
                           Container(
-                            height:
-                                screenHeight *
-                                0.25, // Même hauteur que dans ProductScreen
+                            height: screenHeight * 0.25,
                             width: double.infinity,
-                            child: Image.network(
-                              'https://www.annuaire-bijoux.com/wp-content/themes/first-mag/img/noprew-related.jpg',
-                              fit:
-                                  BoxFit
-                                      .contain, // Même fit que dans ProductScreen
-                            ),
+                            child:
+                                _isEditing &&
+                                        productService
+                                                .currentProduct
+                                                .value
+                                                ?.imagePath !=
+                                            null
+                                    ? Image.network(
+                                      productService
+                                          .currentProduct
+                                          .value!
+                                          .imagePath!,
+                                      fit: BoxFit.contain,
+                                      errorBuilder:
+                                          (
+                                            context,
+                                            error,
+                                            stackTrace,
+                                          ) => Image.network(
+                                            'https://www.annuaire-bijoux.com/wp-content/themes/first-mag/img/noprew-related.jpg',
+                                            fit: BoxFit.contain,
+                                          ),
+                                    )
+                                    : Image.network(
+                                      'https://www.annuaire-bijoux.com/wp-content/themes/first-mag/img/noprew-related.jpg',
+                                      fit: BoxFit.contain,
+                                    ),
                           ),
-                          // Pour placer le bouton en bas à droite de l'image
                           Positioned(
-                            bottom: 0,
-                            right: 0,
+                            bottom: 10,
+                            right: 10,
                             child: GestureDetector(
                               onTap: () {
                                 print('Bouton pressé');
+                                // Logique pour sélectionner une image
                               },
-                              child: Padding(
-                                padding: EdgeInsets.only(top: 3),
-                                child: Image.asset(
-                                  'assets/app_assets/plus_orange_icon.png',
-                                  width: 75,
-                                  height: 75,
+                              child: Container(
+                                width: 50,
+                                height: 50,
+                                decoration: BoxDecoration(
+                                  color: Color.fromRGBO(247, 147, 76, 1.0),
+                                  shape: BoxShape.circle,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black26,
+                                      blurRadius: 4,
+                                      offset: Offset(0, 2),
+                                    ),
+                                  ],
+                                ),
+                                child: Icon(
+                                  Icons.add,
+                                  color: Colors.white,
+                                  size: 30,
                                 ),
                               ),
                             ),
@@ -82,7 +288,7 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
                         width: double.infinity,
                         padding: EdgeInsets.only(
                           top: 25,
-                          bottom: 120, // Augmenté comme dans ProductScreen
+                          bottom: 120,
                           left: 30,
                           right: 15,
                         ),
@@ -97,7 +303,6 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
                         child: Container(
                           width: double.infinity,
                           child: Scrollbar(
-                            // Utilisation du ScrollController dans le Scrollbar
                             controller: _scrollController,
                             thumbVisibility: true,
                             thickness: 3,
@@ -107,7 +312,7 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 mainAxisAlignment: MainAxisAlignment.start,
                                 children: [
-                                  // Nom - Même style que dans ProductScreen
+                                  // Nom
                                   Padding(
                                     padding: EdgeInsets.only(bottom: 15),
                                     child: Column(
@@ -118,7 +323,6 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
                                           'Nom : ',
                                           style: TextStyle(
                                             fontSize: 20,
-                                            // Augmenté comme dans ProductScreen
                                             fontWeight: FontWeight.bold,
                                             color: Colors.black,
                                             fontFamily: 'Lato',
@@ -141,18 +345,21 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
                                             ),
                                           ),
                                           child: TextField(
+                                            controller: _nameController,
                                             decoration: InputDecoration(
                                               hintText:
                                                   'Entrez le nom du produit',
                                               hintStyle: TextStyle(
                                                 fontSize: 16,
                                                 fontFamily: 'Lato',
+                                                color: Colors.black,
                                               ),
                                               border: InputBorder.none,
                                             ),
                                             style: TextStyle(
-                                              fontSize: 18, // Harmonisé
+                                              fontSize: 18,
                                               fontFamily: 'Lato',
+                                              color: Colors.black,
                                             ),
                                           ),
                                         ),
@@ -160,7 +367,7 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
                                     ),
                                   ),
 
-                                  // Unité - Même style que dans ProductScreen
+                                  // Unité
                                   Padding(
                                     padding: EdgeInsets.only(bottom: 15),
                                     child: Column(
@@ -170,7 +377,7 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
                                         Text(
                                           'Unité (poids/volume/nombre) :',
                                           style: TextStyle(
-                                            fontSize: 20, // Harmonisé
+                                            fontSize: 20,
                                             fontWeight: FontWeight.bold,
                                             color: Colors.black,
                                             fontFamily: 'Lato',
@@ -193,17 +400,20 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
                                             ),
                                           ),
                                           child: TextField(
+                                            controller: _quantityController,
                                             decoration: InputDecoration(
                                               hintText: 'Entrez l\'unité',
                                               hintStyle: TextStyle(
                                                 fontSize: 16,
                                                 fontFamily: 'Lato',
+                                                color: Colors.black,
                                               ),
                                               border: InputBorder.none,
                                             ),
                                             style: TextStyle(
-                                              fontSize: 18, // Harmonisé
+                                              fontSize: 18,
                                               fontFamily: 'Lato',
+                                              color: Colors.black,
                                             ),
                                           ),
                                         ),
@@ -211,7 +421,7 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
                                     ),
                                   ),
 
-                                  // Mots-clés - Même style
+                                  // Mots-clés
                                   Padding(
                                     padding: EdgeInsets.only(bottom: 15),
                                     child: Column(
@@ -221,7 +431,7 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
                                         Text(
                                           'Mots-clés de recherche :',
                                           style: TextStyle(
-                                            fontSize: 20, // Harmonisé
+                                            fontSize: 20,
                                             fontWeight: FontWeight.bold,
                                             color: Colors.black,
                                             fontFamily: 'Lato',
@@ -244,18 +454,21 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
                                             ),
                                           ),
                                           child: TextField(
+                                            controller: _keywordsController,
                                             decoration: InputDecoration(
                                               hintText:
                                                   'Exemple : tomate, viande',
                                               hintStyle: TextStyle(
                                                 fontSize: 16,
                                                 fontFamily: 'Lato',
+                                                color: Colors.black,
                                               ),
                                               border: InputBorder.none,
                                             ),
                                             style: TextStyle(
-                                              fontSize: 18, // Harmonisé
+                                              fontSize: 18,
                                               fontFamily: 'Lato',
+                                              color: Colors.black,
                                             ),
                                           ),
                                         ),
@@ -263,11 +476,11 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
                                     ),
                                   ),
 
-                                  // Nutri-score - Harmonisé
+                                  // Nutri-score
                                   Text(
                                     'Nutri-score :',
                                     style: TextStyle(
-                                      fontSize: 20, // Harmonisé
+                                      fontSize: 20,
                                       fontWeight: FontWeight.bold,
                                       color: Colors.black,
                                       fontFamily: 'Lato',
@@ -284,7 +497,6 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
                                     ),
                                     child: DropdownButton<String>(
                                       isExpanded: true,
-                                      // Pour que le dropdown prenne toute la largeur
                                       hint: Text(
                                         'Choisir une option',
                                         style: TextStyle(
@@ -311,12 +523,12 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
                                       ),
                                       style: TextStyle(
                                         color: Colors.black,
-                                        fontSize: 18, // Harmonisé
+                                        fontSize: 18,
                                         fontFamily: 'Lato',
                                       ),
                                       items:
                                           <String>[
-                                            '0',
+                                            'Non concerné',
                                             'A',
                                             'B',
                                             'C',
@@ -333,36 +545,36 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
                                     ),
                                   ),
                                   SizedBox(height: 15),
-                                  Row(
-                                    children: [
-                                      Checkbox(
-                                        value: _isChecked,
-                                        activeColor: Color.fromRGBO(
-                                          247,
-                                          147,
-                                          76,
-                                          1.0,
+                                  // Afficher seulement si en mode création, pas en édition
+                                  if (!_isEditing)
+                                    Row(
+                                      children: [
+                                        Checkbox(
+                                          value: _isChecked,
+                                          activeColor: Color.fromRGBO(
+                                            247,
+                                            147,
+                                            76,
+                                            1.0,
+                                          ),
+                                          checkColor: Colors.white,
+                                          onChanged: (bool? value) {
+                                            setState(() {
+                                              _isChecked = value ?? false;
+                                            });
+                                          },
                                         ),
-                                        checkColor: Colors.white,
-                                        onChanged: (bool? value) {
-                                          setState(() {
-                                            _isChecked = value ?? false;
-                                          });
-                                        },
-                                      ),
-                                      Text(
-                                        'Ajouter directement dans la liste',
-                                        style: TextStyle(
-                                          fontSize: 16, // Harmonisé
-                                          color: Colors.black,
-                                          fontFamily: 'Lato',
+                                        Text(
+                                          'Ajouter directement dans la liste',
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            color: Colors.black,
+                                            fontFamily: 'Lato',
+                                          ),
                                         ),
-                                      ),
-                                    ],
-                                  ),
-                                  SizedBox(
-                                    height: 30,
-                                  ), // Espace supplémentaire en bas
+                                      ],
+                                    ),
+                                  SizedBox(height: 30),
                                 ],
                               ),
                             ),
@@ -373,7 +585,7 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
                   ),
                 ),
 
-                // Bouton fixe en bas de l'écran (comme dans ProductScreen)
+                // Bouton fixe en bas de l'écran
                 Positioned(
                   left: 0,
                   right: 0,
@@ -394,10 +606,7 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
                     child: SizedBox(
                       height: 50,
                       child: ElevatedButton(
-                        onPressed: () {
-                          print('Bouton pressé');
-                          // Action pour créer le produit
-                        },
+                        onPressed: _isLoading ? null : _saveProduct,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color.fromRGBO(
                             247,
@@ -409,15 +618,20 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
                             borderRadius: BorderRadius.circular(25.0),
                           ),
                         ),
-                        child: const Text(
-                          'Créer',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                            fontFamily: 'Lato',
-                          ),
-                        ),
+                        child:
+                            _isLoading
+                                ? const CircularProgressIndicator(
+                                  color: Colors.white,
+                                )
+                                : Text(
+                                  buttonText,
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                    fontFamily: 'Lato',
+                                  ),
+                                ),
                       ),
                     ),
                   ),

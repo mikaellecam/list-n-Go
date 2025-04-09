@@ -46,10 +46,10 @@ class DatabaseService {
         date TEXT,
         image_path TEXT,
         nutri_score TEXT,
-        fat TEXT,
-        saturated_fat TEXT,
-        sugar TEXT, 
-        salt TEXT,
+        fat REAL,
+        saturated_fat REAL,
+        sugar REAL, 
+        salt REAL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     ''');
