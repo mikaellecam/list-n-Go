@@ -8,6 +8,10 @@ class Product {
   final DateTime? date;
   final String? imagePath;
   final String? nutriScore;
+  final String? fat;
+  final String? saturatedFat;
+  final String? sugar;
+  final String? salt;
   final DateTime? createdAt;
 
   Product({
@@ -20,6 +24,10 @@ class Product {
     this.date,
     this.imagePath,
     this.nutriScore,
+    this.fat,
+    this.saturatedFat,
+    this.sugar,
+    this.salt,
     this.createdAt,
   });
 
@@ -39,6 +47,10 @@ class Product {
       date: map['date'] != null ? DateTime.parse(map['date']) : null,
       imagePath: map['image_path'],
       nutriScore: map['nutri_score'],
+      fat: map['fat'],
+      saturatedFat: map['saturated_fat'],
+      sugar: map['sugar'],
+      salt: map['salt'],
       createdAt:
           map['created_at'] != null ? DateTime.parse(map['created_at']) : null,
     );
@@ -77,6 +89,22 @@ class Product {
 
     if (nutriScore != null) {
       map['nutri_score'] = nutriScore;
+    }
+
+    if (fat != null) {
+      map['fat'] = fat;
+    }
+
+    if (saturatedFat != null) {
+      map['saturated_fat'] = saturatedFat;
+    }
+
+    if (sugar != null) {
+      map['sugar'] = sugar;
+    }
+
+    if (salt != null) {
+      map['salt'] = salt;
     }
 
     if (createdAt != null) {
