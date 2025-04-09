@@ -63,6 +63,10 @@ class _ProductScreenState extends State<ProductScreen> {
         imagePath:
             "https://images.openfoodfacts.org/images/products/893/521/090/1767/front_fr.3.400.jpg",
         nutriScore: "A",
+        fat: 11.2,
+        saturatedFat: 11.2,
+        salt: 5,
+        sugar: 56.3,
       );
 
       // Mettre à jour le produit actuel
@@ -93,11 +97,10 @@ class _ProductScreenState extends State<ProductScreen> {
         product.quantity != null && product.quantity!.isNotEmpty;
 
     // Vérification des valeurs nutritionnelles individuelles
-    visibilityMap['fat'] = product.fat != null && product.fat!.isNotEmpty;
-    visibilityMap['saturatedFat'] =
-        product.saturatedFat != null && product.saturatedFat!.isNotEmpty;
-    visibilityMap['sugar'] = product.sugar != null && product.sugar!.isNotEmpty;
-    visibilityMap['salt'] = product.salt != null && product.salt!.isNotEmpty;
+    visibilityMap['fat'] = product.fat != null;
+    visibilityMap['saturatedFat'] = product.saturatedFat != null;
+    visibilityMap['sugar'] = product.sugar != null;
+    visibilityMap['salt'] = product.salt != null;
 
     // Vérification si au moins une valeur nutritionnelle est disponible
     visibilityMap['nutritionalValues'] =
@@ -110,8 +113,8 @@ class _ProductScreenState extends State<ProductScreen> {
   @override
   void initState() {
     super.initState();
-    //loadProductFromAPI();
-    loadLocalProduct();
+    loadProductFromAPI();
+    //loadLocalProduct();
     //_productService = getIt<ProductService>();
   }
 
@@ -379,7 +382,8 @@ class _ProductScreenState extends State<ProductScreen> {
                                             _productService
                                                 .currentProduct
                                                 .value
-                                                ?.fat,
+                                                ?.fat
+                                                .toString(),
                                           ),
                                           const Divider(height: 24),
                                         ],
@@ -391,7 +395,8 @@ class _ProductScreenState extends State<ProductScreen> {
                                             _productService
                                                 .currentProduct
                                                 .value
-                                                ?.saturatedFat,
+                                                ?.saturatedFat
+                                                .toString(),
                                           ),
                                           if (visibilityMap['sugar']! ||
                                               visibilityMap['salt']!)
@@ -405,7 +410,8 @@ class _ProductScreenState extends State<ProductScreen> {
                                             _productService
                                                 .currentProduct
                                                 .value
-                                                ?.sugar,
+                                                ?.sugar
+                                                .toString(),
                                           ),
                                           if (visibilityMap['salt']!)
                                             const Divider(height: 24),
@@ -418,7 +424,8 @@ class _ProductScreenState extends State<ProductScreen> {
                                             _productService
                                                 .currentProduct
                                                 .value
-                                                ?.salt,
+                                                ?.salt
+                                                .toString(),
                                           ),
                                       ],
                                     ),
@@ -490,12 +497,55 @@ class _ProductScreenState extends State<ProductScreen> {
   }
 
   // Widget pour afficher un indicateur nutritionnel
-  Widget _buildNutrientIndicator(String label, String? level) {
-    // Définir les couleurs en fonction du niveau
-    Color getColorForLevel(String? level) {
-      if (level == null) return Colors.grey;
+  Widget _buildNutrientIndicator(String label, String? levelStr) {
+    // Convertir la chaîne en double si possible
+    double? levelValue;
+    try {
+      if (levelStr != null && levelStr.isNotEmpty) {
+        // Supprimer toute unité (g, mg, etc.) et convertir en double
+        final cleanedStr = levelStr.replaceAll(RegExp(r'[^0-9\.]'), '');
+        levelValue = double.tryParse(cleanedStr);
+      }
+    } catch (e) {
+      debugPrint('Erreur de conversion: $e');
+    }
 
-      switch (level.toLowerCase()) {
+    // Fonction pour déterminer le niveau basé sur les seuils
+    String getNutrientLevel(String nutrientType, double? value) {
+      if (value == null) return 'unknown';
+
+      switch (nutrientType) {
+        case 'Matières grasses':
+          if (value <= 3.0) return 'low';
+          if (value <= 17.5) return 'moderate';
+          return 'high';
+
+        case 'Acides gras saturés':
+          if (value <= 1.5) return 'low';
+          if (value <= 5.0) return 'moderate';
+          return 'high';
+
+        case 'Sucres':
+          if (value <= 5.0) return 'low';
+          if (value <= 22.5) return 'moderate';
+          return 'high';
+
+        case 'Sel':
+          if (value <= 0.3) return 'low';
+          if (value <= 1.5) return 'moderate';
+          return 'high';
+
+        default:
+          return 'unknown';
+      }
+    }
+
+    // Déterminer le niveau en fonction du type de nutriment et de sa valeur
+    final String level = getNutrientLevel(label, levelValue);
+
+    // Définir les couleurs en fonction du niveau
+    Color getColorForLevel(String level) {
+      switch (level) {
         case 'high':
           return Colors.red.shade400;
         case 'moderate':
@@ -508,24 +558,32 @@ class _ProductScreenState extends State<ProductScreen> {
     }
 
     // Définir le texte à afficher
-    String getLevelText(String? level) {
-      if (level == null || level.isEmpty) return 'Non disponible';
-
-      switch (level.toLowerCase()) {
+    String getLevelText(String level, double? value) {
+      String baseText = '';
+      switch (level) {
         case 'high':
-          return 'Élevé';
+          baseText = 'Élevé';
+          break;
         case 'moderate':
-          return 'Modéré';
+          baseText = 'Modéré';
+          break;
         case 'low':
-          return 'Faible';
+          baseText = 'Faible';
+          break;
         default:
-          return level;
+          return 'Non disponible';
       }
+
+      // Ajouter la valeur numérique si disponible
+      if (value != null) {
+        return '$baseText (${value.toStringAsFixed(1)}g/100g)';
+      }
+      return baseText;
     }
 
     // Récupérer couleur et texte
     final color = getColorForLevel(level);
-    final levelText = getLevelText(level);
+    final levelText = getLevelText(level, levelValue);
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,

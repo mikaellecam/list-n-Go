@@ -354,13 +354,13 @@ class ProductService {
     }
 
     // Récupérer les niveaux nutritionnels
-    String? fatLevel;
-    String? saltLevel;
-    String? saturatedFatLevel;
-    String? sugarsLevel;
+    double? fatLevel;
+    double? saltLevel;
+    double? saturatedFatLevel;
+    double? sugarsLevel;
 
-    if (data['nutrient_levels'] != null && data['nutrient_levels'] is Map) {
-      Map<String, dynamic> nutrientLevels = data['nutrient_levels'];
+    if (data['nutriments'] != null && data['nutriments'] is Map) {
+      Map<String, dynamic> nutrientLevels = data['nutriments'];
       fatLevel = nutrientLevels['fat'];
       saltLevel = nutrientLevels['salt'];
       saturatedFatLevel = nutrientLevels['saturated-fat'];
