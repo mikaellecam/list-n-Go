@@ -35,6 +35,38 @@ class _ProductScreenState extends State<ProductScreen> {
     }
   }
 
+  // Méthode pour charger un produit fictif modifiable
+  void loadLocalProduct() {
+    try {
+      // Création d'un produit fictif que vous pouvez modifier
+      final product = Product(
+        id: 99,
+        barcode: 1234567890123,
+        name: "Mon Produit Local Test",
+        keywords: ["test", "local", "modifiable"],
+        quantity: "500g",
+        isApi: false,
+        // Important: false pour pouvoir modifier
+        imagePath:
+            "https://images.openfoodfacts.org/images/products/893/521/090/1767/front_fr.3.400.jpg",
+        nutriScore: "A",
+        createdAt: DateTime.now(),
+      );
+
+      // Mettre à jour le produit actuel
+      _productService.currentProduct.value = product;
+
+      // Mettre à jour les variables de visibilité
+      setState(() {
+        checkVisibility();
+      });
+
+      debugPrint('Produit local chargé avec succès');
+    } catch (e) {
+      debugPrint('Erreur lors du chargement du produit local: $e');
+    }
+  }
+
   void checkVisibility() {
     // Met à jour les variables de visibilité
     if (_productService.currentProduct.value != null &&
@@ -53,7 +85,7 @@ class _ProductScreenState extends State<ProductScreen> {
   @override
   void initState() {
     super.initState();
-    loadProductFromAPI();
+    loadLocalProduct();
     //_productService = getIt<ProductService>();
   }
 
@@ -62,8 +94,8 @@ class _ProductScreenState extends State<ProductScreen> {
     final screenHeight = MediaQuery.of(context).size.height;
 
     return Scaffold(
+      backgroundColor: const Color.fromARGB(255, 243, 243, 243),
       appBar: CustomAppBar(),
-      // Occuper tout l'espace vertical disponible
       body: ValueListenableBuilder<Product?>(
         valueListenable: _productService.currentProduct,
         builder: (context, product, child) {
@@ -85,194 +117,178 @@ class _ProductScreenState extends State<ProductScreen> {
                     SingleChildScrollView(
                       padding: const EdgeInsets.only(
                         bottom: 82,
-                      ), // Hauteur du bouton + padding
+                      ), // Espace pour le bouton
                       child: Column(
                         children: [
                           // Image en haut
-                          SizedBox(
-                            width: double.infinity,
+                          Container(
                             height: screenHeight * 0.25,
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: Colors.grey.shade200,
-                              ),
-                              child:
-                                  _productService
-                                                  .currentProduct
-                                                  .value!
-                                                  .imagePath !=
-                                              null &&
-                                          _productService
-                                              .currentProduct
-                                              .value!
-                                              .imagePath!
-                                              .isNotEmpty
-                                      ? Image.network(
+                            width: double.infinity,
+                            child:
+                                _productService
+                                                .currentProduct
+                                                .value!
+                                                .imagePath !=
+                                            null &&
                                         _productService
                                             .currentProduct
                                             .value!
-                                            .imagePath!,
-                                        fit: BoxFit.contain,
-                                        errorBuilder: (
-                                          context,
-                                          error,
-                                          stackTrace,
-                                        ) {
-                                          return const Icon(
-                                            Icons.image_not_supported,
-                                            size: 64,
-                                            color: Colors.grey,
-                                          );
-                                        },
-                                      )
-                                      : const Icon(
-                                        Icons.image_not_supported,
-                                        size: 64,
-                                        color: Colors.grey,
-                                      ),
-                            ),
+                                            .imagePath!
+                                            .isNotEmpty
+                                    ? Image.network(
+                                      _productService
+                                          .currentProduct
+                                          .value!
+                                          .imagePath!,
+                                      fit: BoxFit.contain,
+                                      errorBuilder: (
+                                        context,
+                                        error,
+                                        stackTrace,
+                                      ) {
+                                        return const Icon(
+                                          Icons.image_not_supported,
+                                          size: 64,
+                                          color: Colors.grey,
+                                        );
+                                      },
+                                    )
+                                    : const Icon(
+                                      Icons.image_not_supported,
+                                      size: 64,
+                                      color: Colors.grey,
+                                    ),
                           ),
 
-                          // Container avec les infos du produit
+                          // Container avec les détails du produit avec coins arrondis
                           Container(
                             width: double.infinity,
-                            padding: const EdgeInsets.all(16.0),
+                            padding: EdgeInsets.only(
+                              top: 25,
+                              bottom: 120,
+                              // Beaucoup d'espace en bas pour dépasser le bouton
+                              left: 30,
+                              right: 15,
+                            ),
+                            constraints: BoxConstraints(
+                              minHeight:
+                                  constraints.maxHeight -
+                                  screenHeight * 0.25 +
+                                  100,
+                            ),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(30),
+                              color: Colors.white,
+                            ),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                // Colonne pour le titre et les boutons de modification/suppression
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                // Nom du produit et boutons d'édition
+                                Wrap(
+                                  alignment: WrapAlignment.start,
+                                  crossAxisAlignment: WrapCrossAlignment.center,
                                   children: [
-                                    Wrap(
-                                      alignment: WrapAlignment.start,
-                                      crossAxisAlignment:
-                                          WrapCrossAlignment.center,
-                                      children: [
-                                        Text(
-                                          product.name,
-                                          style: const TextStyle(
-                                            fontSize: 25,
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.black,
-                                            fontFamily: 'Lato',
-                                          ),
-                                        ),
-                                        _productService
-                                                .currentProduct
-                                                .value!
-                                                .isApi
-                                            ? SizedBox.shrink()
-                                            : IconButton(
-                                              icon: Icon(
-                                                Icons.edit,
-                                                color: Color.fromRGBO(
-                                                  247,
-                                                  147,
-                                                  76,
-                                                  1.0,
-                                                ),
-                                              ),
-                                              onPressed: () {
-                                                // Action d'édition
-                                              },
-                                            ),
-                                        _productService
-                                                .currentProduct
-                                                .value!
-                                                .isApi
-                                            ? SizedBox.shrink()
-                                            : IconButton(
-                                              icon: const Icon(Icons.delete),
-                                              onPressed: () {
-                                                setState(() {
-                                                  context.pushNamed(
-                                                    "/create-product",
-                                                  );
-                                                });
-                                                // Action de suppression
-                                              },
-                                            ),
-                                      ],
+                                    Text(
+                                      product.name,
+                                      style: const TextStyle(
+                                        fontSize: 25,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.black,
+                                        fontFamily: 'Lato',
+                                      ),
                                     ),
+                                    _productService.currentProduct.value!.isApi
+                                        ? SizedBox.shrink()
+                                        : IconButton(
+                                          icon: Icon(
+                                            Icons.edit,
+                                            color: Color.fromRGBO(
+                                              247,
+                                              147,
+                                              76,
+                                              1.0,
+                                            ),
+                                          ),
+                                          onPressed: () {
+                                            context.push('/create-product');
+                                          },
+                                        ),
+                                    _productService.currentProduct.value!.isApi
+                                        ? SizedBox.shrink()
+                                        : IconButton(
+                                          icon: const Icon(Icons.delete),
+                                          onPressed: () {
+                                            // Action de suppression
+                                          },
+                                        ),
                                   ],
                                 ),
-                                const SizedBox(height: 8),
 
-                                // Row pour les boutons de quantité, alignée à droite
                                 const SizedBox(height: 30),
 
                                 // Unité (poids/volume/litre)
-                                SizedBox(
-                                  width: double.infinity,
-                                  child:
-                                      visibleQuantity
-                                          ? Row(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.baseline,
-                                            textBaseline:
-                                                TextBaseline.alphabetic,
-                                            children: [
-                                              const Text(
-                                                'Unité ',
-                                                style: TextStyle(
-                                                  fontSize: 20,
-                                                  fontWeight: FontWeight.bold,
-                                                  color: Colors.black,
-                                                  fontFamily: 'Lato',
-                                                ),
-                                              ),
-                                              const Text(
-                                                '(poids/volume/litre) ',
-                                                style: TextStyle(
-                                                  fontSize: 14,
-                                                  color: Colors.black,
-                                                  fontFamily: 'Lato',
-                                                ),
-                                              ),
-                                              const Text(
-                                                ':',
-                                                style: TextStyle(
-                                                  fontSize: 20,
-                                                  fontWeight: FontWeight.bold,
-                                                  color: Colors.black,
-                                                  fontFamily: 'Lato',
-                                                ),
-                                              ),
-                                              // Utilisation d'Expanded pour occuper l'espace restant
-                                              Expanded(
-                                                child: Padding(
-                                                  padding:
-                                                      const EdgeInsets.fromLTRB(
-                                                        0,
-                                                        0,
-                                                        75,
-                                                        0,
-                                                      ),
-                                                  child: Text(
-                                                    _productService
-                                                        .currentProduct
-                                                        .value!
-                                                        .quantity!,
-                                                    // Valeur à récupérer du produit si disponible
-                                                    textAlign: TextAlign.right,
-                                                    style: const TextStyle(
-                                                      fontSize: 20,
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                      color: Colors.black,
-                                                      fontFamily: 'Lato',
-                                                    ),
-                                                  ),
-                                                ),
-                                              ),
-                                            ],
-                                          )
-                                          : SizedBox.shrink(),
-                                ),
+                                if (visibleQuantity)
+                                  Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.baseline,
+                                    textBaseline: TextBaseline.alphabetic,
+                                    children: [
+                                      const Text(
+                                        'Unité ',
+                                        style: TextStyle(
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.black,
+                                          fontFamily: 'Lato',
+                                        ),
+                                      ),
+                                      const Text(
+                                        '(poids/volume/litre) ',
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          color: Colors.black,
+                                          fontFamily: 'Lato',
+                                        ),
+                                      ),
+                                      const Text(
+                                        ':',
+                                        style: TextStyle(
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.black,
+                                          fontFamily: 'Lato',
+                                        ),
+                                      ),
+                                      // Utilisation d'Expanded pour occuper l'espace restant
+                                      Expanded(
+                                        child: Padding(
+                                          padding: const EdgeInsets.fromLTRB(
+                                            0,
+                                            0,
+                                            75,
+                                            0,
+                                          ),
+                                          child: Text(
+                                            _productService
+                                                .currentProduct
+                                                .value!
+                                                .quantity!,
+                                            textAlign: TextAlign.right,
+                                            style: const TextStyle(
+                                              fontSize: 20,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.black,
+                                              fontFamily: 'Lato',
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
 
                                 const SizedBox(height: 30),
 
+                                // Nutri-Score
                                 Row(
                                   mainAxisAlignment:
                                       MainAxisAlignment.spaceBetween,
