@@ -19,6 +19,50 @@ class ProductService {
   final ValueNotifier<bool> isLoading = ValueNotifier(false);
   final ValueNotifier<String?> error = ValueNotifier(null);
 
+  //Création d'un produit en base
+  Future<int> createProduct({
+    required String name,
+    String? quantity,
+    List<String>? keywords,
+    String? nutriScore,
+  }) async {
+    isLoading.value = true;
+    error.value = null;
+
+    try {
+      final product = Product(
+        name: name,
+        quantity: quantity,
+        keywords: keywords,
+        nutriScore: nutriScore,
+        isApi: false,
+        // Produit créé manuellement
+        createdAt: DateTime.now(),
+      );
+
+      debugPrint('Création d\'un nouveau produit: ${product.name}');
+      final productId = await _db.insertProduct(product);
+
+      if (productId > 0) {
+        // Récupérer le produit complet avec l'ID
+        final createdProduct = await _db.getProductById(productId);
+        if (createdProduct != null) {
+          currentProduct.value = createdProduct;
+        }
+      } else {
+        error.value = 'Échec de la création du produit';
+      }
+
+      return productId;
+    } catch (e) {
+      debugPrint('Erreur lors de la création du produit: $e');
+      error.value = 'Erreur lors de la création: $e';
+      return -1;
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
   // Recherche des produits en local et en ligne
   Future<void> searchProduct(String query) async {
     isLoading.value = true;
@@ -68,7 +112,6 @@ class ProductService {
   Future<Product?> getProductByBarcode(String barcode) async {
     isLoading.value = true;
     error.value = null;
-    Product? result;
 
     try {
       // Vérifier d'abord si le produit existe dans la base de données locale
@@ -81,9 +124,7 @@ class ProductService {
           debugPrint(
             'Produit trouvé dans la base de données locale: ${localProduct.name}',
           );
-          result = localProduct;
-          currentProduct.value =
-              localProduct; // Mettre à jour le notificateur de valeur
+          currentProduct.value = localProduct;
           return localProduct;
         }
       } catch (e) {
@@ -116,9 +157,7 @@ class ProductService {
           // Sauvegarder le produit dans la base de données locale
           await saveProduct(product);
 
-          result = product;
-          currentProduct.value =
-              product; // Mettre à jour le notificateur de valeur
+          currentProduct.value = product;
           return product;
         } else {
           debugPrint('Produit non trouvé: ${jsonData['status_verbose']}');
@@ -250,6 +289,20 @@ class ProductService {
       nutriScore = data['nutrition_grades'];
     }
 
+    // Récupérer les niveaux nutritionnels
+    String? fatLevel;
+    String? saltLevel;
+    String? saturatedFatLevel;
+    String? sugarsLevel;
+
+    if (data['nutrient_levels'] != null && data['nutrient_levels'] is Map) {
+      Map<String, dynamic> nutrientLevels = data['nutrient_levels'];
+      fatLevel = nutrientLevels['fat'];
+      saltLevel = nutrientLevels['salt'];
+      saturatedFatLevel = nutrientLevels['saturated-fat'];
+      sugarsLevel = nutrientLevels['sugars'];
+    }
+
     // Création de l'objet
     return Product(
       id: -1,
@@ -260,6 +313,10 @@ class ProductService {
       isApi: true,
       imagePath: imagePath,
       nutriScore: nutriScore,
+      fat: fatLevel,
+      saturatedFat: saturatedFatLevel,
+      salt: saltLevel,
+      sugar: sugarsLevel,
       createdAt: DateTime.now(),
     );
   }

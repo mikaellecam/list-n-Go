@@ -12,6 +12,16 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
   String valeurNutriscore = '';
   bool _isChecked = false;
 
+  // Ajout d'un ScrollController pour le Scrollbar
+  final ScrollController _scrollController = ScrollController();
+
+  @override
+  void dispose() {
+    // Libérer les ressources du ScrollController à la destruction du widget
+    _scrollController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
@@ -27,6 +37,8 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
               fit: StackFit.expand,
               children: [
                 SingleChildScrollView(
+                  // Ajout du controller à SingleChildScrollView
+                  controller: _scrollController,
                   padding: const EdgeInsets.only(
                     bottom: 82,
                   ), // Espace pour le bouton
@@ -85,6 +97,8 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
                         child: Container(
                           width: double.infinity,
                           child: Scrollbar(
+                            // Utilisation du ScrollController dans le Scrollbar
+                            controller: _scrollController,
                             thumbVisibility: true,
                             thickness: 3,
                             child: Container(

@@ -14,8 +14,18 @@ class ProductScreen extends StatefulWidget {
 
 class _ProductScreenState extends State<ProductScreen> {
   bool inModification = false;
-  bool visibleNutriscore = false;
-  bool visibleQuantity = false;
+
+  // Utiliser un Map pour gérer la visibilité de tous les champs
+  Map<String, bool> visibilityMap = {
+    'nutriscore': false,
+    'quantity': false,
+    'nutritionalValues': false,
+    'fat': false,
+    'saturatedFat': false,
+    'sugar': false,
+    'salt': false,
+  };
+
   final ProductService _productService = ProductService();
 
   Future<void> loadProductFromAPI() async {
@@ -50,6 +60,10 @@ class _ProductScreenState extends State<ProductScreen> {
         imagePath:
             "https://images.openfoodfacts.org/images/products/893/521/090/1767/front_fr.3.400.jpg",
         nutriScore: "A",
+        fat: "low",
+        saturatedFat: "moderate",
+        sugar: "high",
+        salt: "low",
         createdAt: DateTime.now(),
       );
 
@@ -68,23 +82,36 @@ class _ProductScreenState extends State<ProductScreen> {
   }
 
   void checkVisibility() {
-    // Met à jour les variables de visibilité
-    if (_productService.currentProduct.value != null &&
-        _productService.currentProduct.value!.nutriScore != null &&
-        _productService.currentProduct.value!.nutriScore! != "") {
-      visibleNutriscore = true;
-    }
+    final product = _productService.currentProduct.value;
+    if (product == null) return;
 
-    if (_productService.currentProduct.value != null &&
-        _productService.currentProduct.value!.quantity != null &&
-        _productService.currentProduct.value!.quantity! != "") {
-      visibleQuantity = true;
-    }
+    // Vérification de Nutriscore
+    visibilityMap['nutriscore'] =
+        product.nutriScore != null && product.nutriScore!.isNotEmpty;
+
+    // Vérification de Quantity
+    visibilityMap['quantity'] =
+        product.quantity != null && product.quantity!.isNotEmpty;
+
+    // Vérification des valeurs nutritionnelles individuelles
+    visibilityMap['fat'] = product.fat != null && product.fat!.isNotEmpty;
+    visibilityMap['saturatedFat'] =
+        product.saturatedFat != null && product.saturatedFat!.isNotEmpty;
+    visibilityMap['sugar'] = product.sugar != null && product.sugar!.isNotEmpty;
+    visibilityMap['salt'] = product.salt != null && product.salt!.isNotEmpty;
+
+    // Vérification si au moins une valeur nutritionnelle est disponible
+    visibilityMap['nutritionalValues'] =
+        visibilityMap['fat']! ||
+        visibilityMap['saturatedFat']! ||
+        visibilityMap['sugar']! ||
+        visibilityMap['salt']!;
   }
 
   @override
   void initState() {
     super.initState();
+    //loadProductFromAPI();
     loadLocalProduct();
     //_productService = getIt<ProductService>();
   }
@@ -227,7 +254,7 @@ class _ProductScreenState extends State<ProductScreen> {
                                 const SizedBox(height: 30),
 
                                 // Unité (poids/volume/litre)
-                                if (visibleQuantity)
+                                if (visibilityMap['quantity']!)
                                   Row(
                                     crossAxisAlignment:
                                         CrossAxisAlignment.baseline,
@@ -288,13 +315,47 @@ class _ProductScreenState extends State<ProductScreen> {
 
                                 const SizedBox(height: 30),
 
-                                // Nutri-Score
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    const Text(
-                                      'Nutri-Score :',
+                                // Nutri-Score (à condition qu'il soit visible)
+                                if (visibilityMap['nutriscore']!)
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      const Text(
+                                        'Nutri-Score :',
+                                        style: TextStyle(
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.black,
+                                          fontFamily: 'Lato',
+                                        ),
+                                      ),
+                                      Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 30,
+                                        ),
+                                        child: SizedBox(
+                                          width: 170,
+                                          child: _buildNutriScoreImage(
+                                            _productService
+                                                .currentProduct
+                                                .value!
+                                                .nutriScore!,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+
+                                // SECTION - Valeurs nutritionnelles (conditionnelle)
+                                if (visibilityMap['nutritionalValues']!) ...[
+                                  const SizedBox(height: 30),
+
+                                  // Titre de la section
+                                  const Padding(
+                                    padding: EdgeInsets.only(bottom: 15),
+                                    child: Text(
+                                      'Valeurs nutritionnelles :',
                                       style: TextStyle(
                                         fontSize: 20,
                                         fontWeight: FontWeight.bold,
@@ -302,22 +363,68 @@ class _ProductScreenState extends State<ProductScreen> {
                                         fontFamily: 'Lato',
                                       ),
                                     ),
-                                    Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 30,
-                                      ),
-                                      child: SizedBox(
-                                        width: 170,
-                                        child: _buildNutriScoreImage(
-                                          _productService
-                                              .currentProduct
-                                              .value!
-                                              .nutriScore!,
-                                        ),
-                                      ),
+                                  ),
+
+                                  // Conteneur pour les indicateurs nutritionnels en style de liste
+                                  Container(
+                                    width: double.infinity,
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 5,
                                     ),
-                                  ],
-                                ),
+                                    child: Column(
+                                      children: [
+                                        // Matières grasses (Fat)
+                                        if (visibilityMap['fat']!) ...[
+                                          _buildNutrientIndicator(
+                                            'Matières grasses',
+                                            _productService
+                                                .currentProduct
+                                                .value
+                                                ?.fat,
+                                          ),
+                                          const Divider(height: 24),
+                                        ],
+
+                                        // Acides gras saturés (Saturated Fat)
+                                        if (visibilityMap['saturatedFat']!) ...[
+                                          _buildNutrientIndicator(
+                                            'Acides gras saturés',
+                                            _productService
+                                                .currentProduct
+                                                .value
+                                                ?.saturatedFat,
+                                          ),
+                                          if (visibilityMap['sugar']! ||
+                                              visibilityMap['salt']!)
+                                            const Divider(height: 24),
+                                        ],
+
+                                        // Sucres (Sugar)
+                                        if (visibilityMap['sugar']!) ...[
+                                          _buildNutrientIndicator(
+                                            'Sucres',
+                                            _productService
+                                                .currentProduct
+                                                .value
+                                                ?.sugar,
+                                          ),
+                                          if (visibilityMap['salt']!)
+                                            const Divider(height: 24),
+                                        ],
+
+                                        // Sel (Salt)
+                                        if (visibilityMap['salt']!)
+                                          _buildNutrientIndicator(
+                                            'Sel',
+                                            _productService
+                                                .currentProduct
+                                                .value
+                                                ?.salt,
+                                          ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
                               ],
                             ),
                           ),
@@ -380,6 +487,85 @@ class _ProductScreenState extends State<ProductScreen> {
           );
         },
       ),
+    );
+  }
+
+  // Widget pour afficher un indicateur nutritionnel
+  Widget _buildNutrientIndicator(String label, String? level) {
+    // Définir les couleurs en fonction du niveau
+    Color getColorForLevel(String? level) {
+      if (level == null) return Colors.grey;
+
+      switch (level.toLowerCase()) {
+        case 'high':
+          return Colors.red.shade400;
+        case 'moderate':
+          return Colors.orange.shade400;
+        case 'low':
+          return Colors.green.shade400;
+        default:
+          return Colors.grey;
+      }
+    }
+
+    // Définir le texte à afficher
+    String getLevelText(String? level) {
+      if (level == null || level.isEmpty) return 'Non disponible';
+
+      switch (level.toLowerCase()) {
+        case 'high':
+          return 'Élevé';
+        case 'moderate':
+          return 'Modéré';
+        case 'low':
+          return 'Faible';
+        default:
+          return level;
+      }
+    }
+
+    // Récupérer couleur et texte
+    final color = getColorForLevel(level);
+    final levelText = getLevelText(level);
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        // Nom du nutriment (en noir comme le reste du texte)
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 16,
+            color: Colors.black,
+            fontFamily: 'Lato',
+          ),
+        ),
+
+        // Indicateur visuel et texte (aligné à droite)
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Cercle de couleur
+            Container(
+              width: 14,
+              height: 14,
+              decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+            ),
+            const SizedBox(width: 8),
+
+            // Texte du niveau
+            Text(
+              levelText,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: color,
+                fontFamily: 'Lato',
+              ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 
