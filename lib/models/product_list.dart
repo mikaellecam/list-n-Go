@@ -1,15 +1,26 @@
+import 'package:flutter/cupertino.dart';
+import 'package:listngo/models/list_product_relation.dart';
+import 'package:listngo/models/product.dart';
+
 class ProductList {
   final int? id;
   String name;
   final DateTime createdAt;
   final DateTime updatedAt;
+  ValueNotifier<List<Product>> products = ValueNotifier([]);
+  Map<int, ListProductRelation> productRelations = {};
 
   ProductList({
     this.id,
     required this.name,
     required this.createdAt,
     required this.updatedAt,
-  });
+    ValueNotifier<List<Product>>? products,
+    Map<int, ListProductRelation>? productRelations,
+  }) {
+    this.products = products ?? ValueNotifier([]);
+    this.productRelations = productRelations ?? {};
+  }
 
   factory ProductList.createNew({required String name}) {
     final now = DateTime.now();
@@ -38,4 +49,16 @@ class ProductList {
 
     return map;
   }
+
+  void addProduct(Product product, ListProductRelation relation) {
+    products.value.add(product);
+    productRelations[product.id!] = relation;
+  }
+
+  void removeProduct(int productId) {
+    products.value.removeWhere((product) => product.id == productId);
+    productRelations.remove(productId);
+  }
+
+  // TODO : Probably add an init method here, fetching all of the products linked to the list
 }

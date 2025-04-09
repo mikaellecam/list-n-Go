@@ -1,7 +1,12 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:listngo/models/product.dart';
 
 class ProductCard extends StatefulWidget {
-  const ProductCard({super.key});
+  Product product;
+
+  ProductCard({super.key, required this.product});
 
   @override
   _ProductCardState createState() => _ProductCardState();
@@ -39,15 +44,24 @@ class _ProductCardState extends State<ProductCard> {
           children: [
             ClipRRect(
               borderRadius: BorderRadius.circular(16),
-              child: Image.network(
-                'https://www.lahalleauxplantes.com/wp-content/uploads/2020/12/tomatoes-5962167-300x300.jpg',
-                width: 100,
-                height: 100,
-                fit: BoxFit.cover,
-                loadingBuilder: (context, child, loadingProgress) {
-                  return child;
-                },
-              ),
+              child:
+                  widget.product.isApi
+                      ? Image.network(
+                        widget.product.imagePath!,
+                        /*'https://www.lahalleauxplantes.com/wp-content/uploads/2020/12/tomatoes-5962167-300x300.jpg'*/
+                        width: 100,
+                        height: 100,
+                        fit: BoxFit.cover,
+                        loadingBuilder: (context, child, loadingProgress) {
+                          return child;
+                        },
+                      )
+                      : Image.file(
+                        File(widget.product.imagePath!),
+                        width: 100,
+                        height: 100,
+                        fit: BoxFit.cover,
+                      ),
             ),
             const SizedBox(width: 20),
             Expanded(
@@ -56,7 +70,7 @@ class _ProductCardState extends State<ProductCard> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Nom du produit',
+                    widget.product.name,
                     softWrap: true,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
@@ -114,7 +128,7 @@ class _ProductCardState extends State<ProductCard> {
                             height: 40,
                             decoration: BoxDecoration(
                               color:
-                                  _isChecked
+                                  _isChecked // TODO Need to use the product-list relation with the checked
                                       ? Color.fromRGBO(247, 147, 76, 1.0)
                                       : Colors.white,
                               borderRadius: BorderRadius.circular(25),

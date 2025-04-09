@@ -1,7 +1,10 @@
 import 'package:flutter/cupertino.dart';
+import 'package:listngo/models/product.dart';
 import 'package:listngo/models/product_list.dart';
 import 'package:listngo/services/database_service.dart';
 import 'package:listngo/services/service_locator.dart';
+
+import '../models/list_product_relation.dart';
 
 class ProductListService {
   final db = getIt<DatabaseService>();
@@ -123,5 +126,98 @@ class ProductListService {
     currentList.dispose();
     isLoading.dispose();
     error.dispose();
+  }
+
+  Future<bool> addProductToList(
+    ProductList productList,
+    Product product, {
+    double quantity = 1.0,
+    bool isChecked = false,
+    int position = 0,
+  }) async {
+    isLoading.value = true;
+    error.value = null;
+
+    try {
+      final listId = productList.id;
+      final productId = product.id;
+
+      if (listId == null) {
+        error.value = 'List ID is null';
+        return false;
+      }
+
+      if (productId == null) {
+        error.value = 'Product ID is null';
+        return false;
+      }
+
+      final result = await db.addProductToList(
+        listId,
+        productId,
+        quantity: quantity,
+        isChecked: isChecked,
+        position: position,
+      );
+
+      if (result > 0) {
+        final relation = ListProductRelation.createNew(
+          listId: listId,
+          productId: productId,
+          quantity: quantity,
+          isChecked: isChecked,
+          position: position,
+        );
+
+        final existingProductIndex = productList.products.value.indexWhere(
+          (p) => p.id == productId,
+        );
+        if (existingProductIndex >= 0) {
+          productList.productRelations[productId] = relation;
+        } else {
+          productList.addProduct(product, relation);
+        }
+
+        if (currentList.value?.id == listId) {
+          currentList.value = productList;
+        }
+
+        return true;
+      } else {
+        error.value = 'Failed to add product to list';
+        return false;
+      }
+    } catch (e) {
+      error.value = 'Error adding product to list: $e';
+      debugPrint('Error adding product to list: $e');
+      return false;
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<void> loadProductsForList(int listId) async {
+    isLoading.value = true;
+    error.value = null;
+
+    try {
+      final completeList = await db.getProductListWithProducts(listId);
+
+      if (completeList != null) {
+        final index = lists.value.indexWhere((list) => list.id == listId);
+        if (index >= 0) {
+          final updatedLists = List<ProductList>.from(lists.value);
+          updatedLists[index] = completeList;
+          lists.value = updatedLists;
+        }
+      } else {
+        error.value = 'Could not load list with products';
+      }
+    } catch (e) {
+      error.value = 'Error loading products for list: $e';
+      debugPrint('Error loading products for list: $e');
+    } finally {
+      isLoading.value = false;
+    }
   }
 }

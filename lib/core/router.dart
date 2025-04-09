@@ -1,4 +1,5 @@
 import 'package:go_router/go_router.dart';
+import 'package:listngo/views/screens/barcode_scanner_screen.dart';
 
 import '../views/screens/create_product_screen.dart';
 import '../views/screens/home_screen.dart';
@@ -28,6 +29,10 @@ final GoRouter router = GoRouter(
     GoRoute(
       path: '/purchase-history',
       builder: (context, state) => PurchaseHistoryScreen(),
+    ),
+    GoRoute(
+      path: '/barcode-scanner',
+      builder: (context, state) => const BarcodeScannerScreen(),
     ),
   ],
 );

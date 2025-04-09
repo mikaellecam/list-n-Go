@@ -46,6 +46,8 @@ dependencies:
   json_serializable: ^6.9.4
   collection: ^1.19.1
   flutter_svg: ^2.0.17
+  mobile_scanner: ^6.0.7
+  permission_handler: ^12.0.0
 
 dev_dependencies:
   flutter_test:
