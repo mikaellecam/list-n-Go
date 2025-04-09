@@ -68,7 +68,6 @@ class ProductService {
   Future<Product?> getProductByBarcode(String barcode) async {
     isLoading.value = true;
     error.value = null;
-    Product? result;
 
     try {
       // Vérifier d'abord si le produit existe dans la base de données locale
@@ -81,9 +80,7 @@ class ProductService {
           debugPrint(
             'Produit trouvé dans la base de données locale: ${localProduct.name}',
           );
-          result = localProduct;
-          currentProduct.value =
-              localProduct; // Mettre à jour le notificateur de valeur
+          currentProduct.value = localProduct;
           return localProduct;
         }
       } catch (e) {
@@ -116,9 +113,7 @@ class ProductService {
           // Sauvegarder le produit dans la base de données locale
           await saveProduct(product);
 
-          result = product;
-          currentProduct.value =
-              product; // Mettre à jour le notificateur de valeur
+          currentProduct.value = product;
           return product;
         } else {
           debugPrint('Produit non trouvé: ${jsonData['status_verbose']}');
@@ -250,6 +245,20 @@ class ProductService {
       nutriScore = data['nutrition_grades'];
     }
 
+    // Récupérer les niveaux nutritionnels
+    String? fatLevel;
+    String? saltLevel;
+    String? saturatedFatLevel;
+    String? sugarsLevel;
+
+    if (data['nutrient_levels'] != null && data['nutrient_levels'] is Map) {
+      Map<String, dynamic> nutrientLevels = data['nutrient_levels'];
+      fatLevel = nutrientLevels['fat'];
+      saltLevel = nutrientLevels['salt'];
+      saturatedFatLevel = nutrientLevels['saturated-fat'];
+      sugarsLevel = nutrientLevels['sugars'];
+    }
+
     // Création de l'objet
     return Product(
       id: -1,
@@ -260,6 +269,10 @@ class ProductService {
       isApi: true,
       imagePath: imagePath,
       nutriScore: nutriScore,
+      fat: fatLevel,
+      saturatedFat: saturatedFatLevel,
+      salt: saltLevel,
+      sugar: sugarsLevel,
       createdAt: DateTime.now(),
     );
   }
