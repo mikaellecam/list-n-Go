@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:listngo/services/product_list_service.dart';
 import 'package:listngo/services/service_locator.dart';
 import 'package:listngo/views/widgets/custom_app_bar.dart';
 
 import '../../models/product_list.dart';
+import '../../services/permission_helper.dart';
 import '../widgets/product_card.dart';
 
 class ProductListScreen extends StatefulWidget {
@@ -68,14 +70,6 @@ class _ProductListScreenState extends State<ProductListScreen> {
       ),
       body: Stack(
         children: [
-          if (_isExpanded)
-            Positioned.fill(
-              child: GestureDetector(
-                onTap: toggleExpandOptions,
-                behavior: HitTestBehavior.translucent,
-                child: Container(color: Colors.black.withValues(alpha: 0.5)),
-              ),
-            ),
           Padding(
             padding: const EdgeInsets.only(bottom: 120),
             child: ListView(
@@ -178,6 +172,14 @@ class _ProductListScreenState extends State<ProductListScreen> {
           ),
 
           if (_isExpanded)
+            Positioned.fill(
+              child: GestureDetector(
+                onTap: toggleExpandOptions,
+                behavior: HitTestBehavior.translucent,
+                child: Container(color: Colors.black.withValues(alpha: 0.5)),
+              ),
+            ),
+          if (_isExpanded)
             Positioned(
               top: 80,
               right: 25,
@@ -223,8 +225,17 @@ class _ProductListScreenState extends State<ProductListScreen> {
                             1.0,
                           ),
                           heroTag: 'scan',
-                          onPressed: () {
-                            toggleExpandOptions();
+                          onPressed: () async {
+                            final hasPermission =
+                                await getIt<PermissionHelper>()
+                                    .requestCameraPermission(context);
+                            if (!hasPermission) return;
+                            final result = await context.push(
+                              '/barcode-scanner',
+                            );
+                            if (result != null && result is String) {
+                              print('Scanned barcode: $result');
+                            }
                           },
                           child: const Icon(
                             Icons.barcode_reader,
@@ -311,15 +322,6 @@ class _ProductListScreenState extends State<ProductListScreen> {
               ),
             ),
           ),
-
-          if (_isExpanded)
-            Positioned.fill(
-              child: GestureDetector(
-                onTap: toggleExpandOptions,
-                behavior: HitTestBehavior.translucent,
-                child: Container(color: Colors.transparent),
-              ),
-            ),
         ],
       ),
     );
