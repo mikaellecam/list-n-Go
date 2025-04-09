@@ -91,10 +91,8 @@ class _ListCardState extends State<ListCard> {
                                 decoration: const InputDecoration(
                                   border: InputBorder.none,
                                   focusedBorder: InputBorder.none,
-                                  isDense: true, // Makes the field more compact
-                                  contentPadding:
-                                      EdgeInsets
-                                          .zero, // Removes internal padding
+                                  isDense: true,
+                                  contentPadding: EdgeInsets.zero,
                                 ),
                               )
                               : Text(

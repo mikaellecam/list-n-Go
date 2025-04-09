@@ -68,6 +68,14 @@ class _ProductListScreenState extends State<ProductListScreen> {
       ),
       body: Stack(
         children: [
+          if (_isExpanded)
+            Positioned.fill(
+              child: GestureDetector(
+                onTap: toggleExpandOptions,
+                behavior: HitTestBehavior.translucent,
+                child: Container(color: Colors.black.withValues(alpha: 0.5)),
+              ),
+            ),
           Padding(
             padding: const EdgeInsets.only(bottom: 120),
             child: ListView(
@@ -164,7 +172,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                     ],
                   ),
                 ),
-                ...List.generate(10, (index) => ProductCard()),
+                ...List.generate(10, (_) => ProductCard()),
               ],
             ),
           ),
@@ -199,7 +207,11 @@ class _ProductListScreenState extends State<ProductListScreen> {
                           ),
                           child: const Text(
                             'Scanner un code-barres',
-                            style: TextStyle(fontFamily: "Lato", fontSize: 14),
+                            style: TextStyle(
+                              fontFamily: "Lato",
+                              fontSize: 14,
+                              color: Colors.black,
+                            ),
                           ),
                         ),
                         const SizedBox(width: 8),
@@ -212,11 +224,10 @@ class _ProductListScreenState extends State<ProductListScreen> {
                           ),
                           heroTag: 'scan',
                           onPressed: () {
-                            print("Scan barcode");
                             toggleExpandOptions();
                           },
                           child: const Icon(
-                            Icons.qr_code_scanner,
+                            Icons.barcode_reader,
                             color: Colors.white,
                           ),
                         ),
@@ -245,7 +256,11 @@ class _ProductListScreenState extends State<ProductListScreen> {
                         ),
                         child: const Text(
                           'Rechercher un produit',
-                          style: TextStyle(fontFamily: "Lato", fontSize: 14),
+                          style: TextStyle(
+                            fontFamily: "Lato",
+                            fontSize: 14,
+                            color: Colors.black,
+                          ),
                         ),
                       ),
                       const SizedBox(width: 8),
