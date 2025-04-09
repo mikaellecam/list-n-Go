@@ -292,13 +292,13 @@ class DatabaseService {
     final db = await database;
 
     try {
-      final List<Map<String, dynamic>> exisitingRelations = await db.query(
+      final List<Map<String, dynamic>> existingRelations = await db.query(
         'ListProductRelation',
         where: 'list_id = ? AND product_id = ?',
         whereArgs: [listId, productId],
       );
 
-      if (exisitingRelations.isNotEmpty) {
+      if (existingRelations.isNotEmpty) {
         await db.update(
           'ListProductRelation',
           {
@@ -332,6 +332,7 @@ class DatabaseService {
     final db = await database;
 
     try {
+      // TODO Possibly remove the Product entry if it is not used in any other list
       return await db.delete(
         'ListProductRelation',
         where: 'list_id = ? AND product_id = ?',
@@ -435,7 +436,6 @@ class DatabaseService {
       }
       productList.productRelations.clear();
 
-      // Get product relations for this list
       final List<Map<String, dynamic>> relations = await db.query(
         'ListProductRelation',
         where: 'list_id = ?',
@@ -443,22 +443,27 @@ class DatabaseService {
         orderBy: 'position ASC',
       );
 
-      // Fetch products for each relation
       List<Product> products = [];
 
       for (var relation in relations) {
         final productId = relation['product_id'] as int;
-        final listRelation = ListProductRelation.fromMap(relation);
-        productList.productRelations[productId] = listRelation;
 
-        // Get the product details
+        if (productId <= 0) continue;
+
+        final listRelation = ListProductRelation.fromMap(relation);
+
         final Product? product = await getProductById(productId);
         if (product != null) {
+          productList.productRelations[productId] = listRelation;
           products.add(product);
+        } else {
+          await delete(
+            'ListProductRelation',
+            'list_id = ? AND product_id = ?',
+            [listId, productId],
+          );
         }
       }
-
-      // Update the products in the list
       productList.products.value = products;
 
       return productList;

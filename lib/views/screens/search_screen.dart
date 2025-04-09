@@ -58,7 +58,7 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   void _addProductToList(Product product) {
-    _productListService.addProductToList(productList, product).then((success) {
+    _productListService.addProductToList(product).then((success) {
       if (success) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

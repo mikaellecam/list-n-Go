@@ -1,7 +1,11 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:listngo/models/product.dart';
+
+import '../../services/product_list_service.dart';
+import '../../services/service_locator.dart';
 
 class ProductCard extends StatefulWidget {
   Product product;
@@ -118,9 +122,42 @@ class _ProductCardState extends State<ProductCard> {
                       SizedBox(width: 15),
                       Row(
                         children: [
-                          Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Icon(Icons.delete_outline),
+                          IconButton(
+                            icon: Icon(Icons.delete_outline),
+                            onPressed: () async {
+                              bool? confirm = await showDialog(
+                                context: context,
+                                builder:
+                                    (context) => AlertDialog(
+                                      title: const Text('Confirmation'),
+                                      content: const Text(
+                                        'Êtes-vous sûr de vouloir supprimer cet élément ?',
+                                      ),
+                                      actions: <Widget>[
+                                        TextButton(
+                                          onPressed: () => context.pop(false),
+                                          child: const Text('Annuler'),
+                                        ),
+                                        TextButton(
+                                          onPressed: () => context.pop(true),
+                                          child: const Text('Supprimer'),
+                                        ),
+                                      ],
+                                    ),
+                              );
+
+                              if (confirm != null && confirm) {
+                                await getIt<ProductListService>()
+                                    .removeProductFromList(
+                                      widget.product,
+                                      listId:
+                                          getIt<ProductListService>()
+                                              .currentList
+                                              .value!
+                                              .id!,
+                                    ); // TODO: Fix list not updating in real time
+                              }
+                            },
                           ),
                           AnimatedContainer(
                             duration: Duration(milliseconds: 300),

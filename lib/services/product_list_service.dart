@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:listngo/models/product.dart';
 import 'package:listngo/models/product_list.dart';
 import 'package:listngo/services/database_service.dart';
+import 'package:listngo/services/product_service.dart';
 import 'package:listngo/services/service_locator.dart';
 
 import '../models/list_product_relation.dart';
@@ -170,7 +171,6 @@ class ProductListService {
   }
 
   Future<bool> addProductToList(
-    ProductList productList,
     Product product, {
     double quantity = 1.0,
     bool isChecked = false,
@@ -180,6 +180,7 @@ class ProductListService {
     error.value = null;
 
     try {
+      final productList = currentList.value!;
       final listId = productList.id;
       final productId = product.id;
 
@@ -189,15 +190,40 @@ class ProductListService {
       }
 
       if (productId == null) {
-        error.value = 'Product ID is null';
+        final savedProductId = await getIt<ProductService>().saveProduct(
+          product,
+        );
+        if (savedProductId <= 0) {
+          error.value = 'Failed to save product';
+          return false;
+        }
+        product = Product(
+          id: savedProductId,
+          name: product.name,
+          barcode: product.barcode,
+          keywords: product.keywords,
+          quantity: product.quantity,
+          isApi: product.isApi,
+          date: product.date,
+          imagePath: product.imagePath,
+          nutriScore: product.nutriScore,
+          fat: product.fat,
+          saturatedFat: product.saturatedFat,
+          sugar: product.sugar,
+          salt: product.salt,
+          createdAt: product.createdAt,
+        );
+      }
+
+      final actualList = findListById(listId);
+      if (actualList == null) {
+        error.value = 'List not found in service';
         return false;
       }
 
-      final actualList = findListById(listId) ?? productList;
-
       final result = await db.addProductToList(
         listId,
-        productId,
+        product.id!,
         quantity: quantity,
         isChecked: isChecked,
         position: position,
@@ -206,7 +232,7 @@ class ProductListService {
       if (result > 0) {
         final relation = ListProductRelation.createNew(
           listId: listId,
-          productId: productId,
+          productId: product.id!,
           quantity: quantity,
           isChecked: isChecked,
           position: position,
@@ -217,7 +243,7 @@ class ProductListService {
         );
 
         if (existingProductIndex >= 0) {
-          actualList.productRelations[productId] = relation;
+          actualList.productRelations[product.id!] = relation;
         } else {
           actualList.addProduct(product, relation);
         }
@@ -236,6 +262,35 @@ class ProductListService {
       error.value = 'Error adding product to list: $e';
       debugPrint('Error adding product to list: $e');
       return false;
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<void> removeProductFromList(
+    Product product, {
+    required int listId,
+  }) async {
+    isLoading.value = true;
+    error.value = null;
+
+    try {
+      final actualList = findListById(listId);
+      if (actualList == null) {
+        error.value = 'List not found in service';
+        return;
+      }
+
+      await db.removeProductFromList(listId, product.id!);
+
+      actualList.removeProduct(product.id!);
+
+      if (currentList.value?.id == listId && currentList.value != actualList) {
+        currentList.value = actualList;
+      }
+    } catch (e) {
+      error.value = 'Error removing product from list: $e';
+      debugPrint('Error removing product from list: $e');
     } finally {
       isLoading.value = false;
     }
