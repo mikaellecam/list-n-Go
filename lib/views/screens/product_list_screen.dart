@@ -173,6 +173,9 @@ class _ProductListScreenState extends State<ProductListScreen> {
                   valueListenable:
                       productListService.currentList.value!.products,
                   builder: (context, products, child) {
+                    print(
+                      'current list hashcode (screen) : ${currentList.hashCode}',
+                    );
                     return Column(
                       children:
                           products
@@ -304,7 +307,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                         ),
                         heroTag: 'search',
                         onPressed: () {
-                          print("Search product");
+                          context.push('/search');
                           toggleExpandOptions();
                         },
                         child: const Icon(Icons.search, color: Colors.white),

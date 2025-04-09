@@ -213,9 +213,6 @@ class ProductService {
           final product = _mapToProduct(productData, barcode);
           debugPrint('Produit mappé avec succès: ${product.name}');
 
-          // Sauvegarder le produit dans la base de données locale
-          await saveProduct(product);
-
           currentProduct.value = product;
           return product;
         } else {
@@ -280,9 +277,6 @@ class ProductService {
               try {
                 Product product = _mapToProduct(productData, barcode);
                 products.add(product);
-
-                // Sauvegarder le produit dans la base de données locale
-                await saveProduct(product);
               } catch (e) {
                 debugPrint('Erreur lors du mapping d\'un produit: $e');
               }
@@ -306,6 +300,13 @@ class ProductService {
 
   // Méthode pour mapper les données JSON vers l'objet Product
   Product _mapToProduct(Map<String, dynamic> data, String barcodeStr) {
+    double? safeToDouble(dynamic value) {
+      if (value == null) return null;
+      if (value is double) return value;
+      if (value is int) return value.toDouble();
+      return null;
+    }
+
     // Nom du produit (plusieurs champs possibles)
     final name =
         data['product_name'] ??
@@ -361,15 +362,14 @@ class ProductService {
 
     if (data['nutriments'] != null && data['nutriments'] is Map) {
       Map<String, dynamic> nutrientLevels = data['nutriments'];
-      fatLevel = nutrientLevels['fat'];
-      saltLevel = nutrientLevels['salt'];
-      saturatedFatLevel = nutrientLevels['saturated-fat'];
-      sugarsLevel = nutrientLevels['sugars'];
+      fatLevel = safeToDouble(nutrientLevels['fat']);
+      saltLevel = safeToDouble(nutrientLevels['salt']);
+      saturatedFatLevel = safeToDouble(nutrientLevels['saturated-fat']);
+      sugarsLevel = safeToDouble(nutrientLevels['sugars']);
     }
 
     // Création de l'objet
     return Product(
-      id: -1,
       barcode: barcode,
       name: name,
       keywords: keywords,

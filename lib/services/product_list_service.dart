@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:listngo/models/product.dart';
 import 'package:listngo/models/product_list.dart';
 import 'package:listngo/services/database_service.dart';
+import 'package:listngo/services/product_service.dart';
 import 'package:listngo/services/service_locator.dart';
 
 import '../models/list_product_relation.dart';
@@ -23,6 +24,47 @@ class ProductListService {
     } catch (e) {
       error.value = 'Failed to load lists: $e';
       debugPrint('Failed to load lists: $e');
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<void> loadListsWithProducts() async {
+    isLoading.value = true;
+    error.value = null;
+
+    try {
+      final basicLists = await _getListsFromDb();
+      debugPrint(
+        'Loaded ${basicLists.length} basic lists, now loading products...',
+      );
+
+      List<ProductList> completeLists = [];
+
+      for (final list in basicLists) {
+        if (list.id != null) {
+          final completeList = await db.getProductListWithProducts(list.id!);
+          debugPrint("completeList: ${completeList?.hashCode}");
+          if (completeList != null) {
+            completeLists.add(completeList);
+            debugPrint(
+              'Loaded list: ${completeList.name} with ${completeList.products.value.length} products',
+            );
+          } else {
+            completeLists.add(list);
+            debugPrint('Could not load products for list: ${list.name}');
+          }
+        } else {
+          completeLists.add(list);
+        }
+      }
+
+      lists.value = completeLists;
+      print("hashcodes: ${lists.value.first.hashCode}");
+      debugPrint('All lists loaded with products');
+    } catch (e) {
+      error.value = 'Failed to load lists with products: $e';
+      debugPrint('Failed to load lists with products: $e');
     } finally {
       isLoading.value = false;
     }
@@ -129,7 +171,6 @@ class ProductListService {
   }
 
   Future<bool> addProductToList(
-    ProductList productList,
     Product product, {
     double quantity = 1.0,
     bool isChecked = false,
@@ -139,6 +180,7 @@ class ProductListService {
     error.value = null;
 
     try {
+      final productList = currentList.value!;
       final listId = productList.id;
       final productId = product.id;
 
@@ -148,13 +190,40 @@ class ProductListService {
       }
 
       if (productId == null) {
-        error.value = 'Product ID is null';
+        final savedProductId = await getIt<ProductService>().saveProduct(
+          product,
+        );
+        if (savedProductId <= 0) {
+          error.value = 'Failed to save product';
+          return false;
+        }
+        product = Product(
+          id: savedProductId,
+          name: product.name,
+          barcode: product.barcode,
+          keywords: product.keywords,
+          quantity: product.quantity,
+          isApi: product.isApi,
+          date: product.date,
+          imagePath: product.imagePath,
+          nutriScore: product.nutriScore,
+          fat: product.fat,
+          saturatedFat: product.saturatedFat,
+          sugar: product.sugar,
+          salt: product.salt,
+          createdAt: product.createdAt,
+        );
+      }
+
+      final actualList = findListById(listId);
+      if (actualList == null) {
+        error.value = 'List not found in service';
         return false;
       }
 
       final result = await db.addProductToList(
         listId,
-        productId,
+        product.id!,
         quantity: quantity,
         isChecked: isChecked,
         position: position,
@@ -163,23 +232,25 @@ class ProductListService {
       if (result > 0) {
         final relation = ListProductRelation.createNew(
           listId: listId,
-          productId: productId,
+          productId: product.id!,
           quantity: quantity,
           isChecked: isChecked,
           position: position,
         );
 
-        final existingProductIndex = productList.products.value.indexWhere(
+        final existingProductIndex = actualList.products.value.indexWhere(
           (p) => p.id == productId,
         );
+
         if (existingProductIndex >= 0) {
-          productList.productRelations[productId] = relation;
+          actualList.productRelations[product.id!] = relation;
         } else {
-          productList.addProduct(product, relation);
+          actualList.addProduct(product, relation);
         }
 
-        if (currentList.value?.id == listId) {
-          currentList.value = productList;
+        if (currentList.value?.id == listId &&
+            currentList.value != actualList) {
+          currentList.value = actualList;
         }
 
         return true;
@@ -191,6 +262,35 @@ class ProductListService {
       error.value = 'Error adding product to list: $e';
       debugPrint('Error adding product to list: $e');
       return false;
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<void> removeProductFromList(
+    Product product, {
+    required int listId,
+  }) async {
+    isLoading.value = true;
+    error.value = null;
+
+    try {
+      final actualList = findListById(listId);
+      if (actualList == null) {
+        error.value = 'List not found in service';
+        return;
+      }
+
+      await db.removeProductFromList(listId, product.id!);
+
+      actualList.removeProduct(product.id!);
+
+      if (currentList.value?.id == listId && currentList.value != actualList) {
+        currentList.value = actualList;
+      }
+    } catch (e) {
+      error.value = 'Error removing product from list: $e';
+      debugPrint('Error removing product from list: $e');
     } finally {
       isLoading.value = false;
     }
@@ -219,5 +319,15 @@ class ProductListService {
     } finally {
       isLoading.value = false;
     }
+  }
+
+  ProductList? findListById(int id) {
+    print("lists: ${lists.value}");
+    final index = lists.value.indexWhere((list) => list.id == id);
+    if (index >= 0) {
+      print('hashcode inside findListById: ${lists.value[index].hashCode}');
+      return lists.value[index];
+    }
+    return null;
   }
 }

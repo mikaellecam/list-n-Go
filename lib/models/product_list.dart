@@ -60,5 +60,10 @@ class ProductList {
     productRelations.remove(productId);
   }
 
+  @override
+  String toString() {
+    return "ProductList(id: $id, name: $name, createdAt: $createdAt, updatedAt: $updatedAt, products: ${products.value}, productRelations: $productRelations)";
+  }
+
   // TODO : Probably add an init method here, fetching all of the products linked to the list
 }
