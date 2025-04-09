@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:listngo/services/product_list_service.dart';
+import 'package:listngo/services/service_locator.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
@@ -102,7 +104,6 @@ class DatabaseService {
         receipt_id INTEGER NOT NULL,
         product_id INTEGER NOT NULL,
         quantity REAL NOT NULL DEFAULT 1,
-        price REAL,
         position INTEGER DEFAULT 0,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         PRIMARY KEY (receipt_id, product_id),
@@ -285,7 +286,6 @@ class DatabaseService {
     int listId,
     int productId, {
     double quantity = 1.0,
-    double? price,
     bool isChecked = false,
     int position = 0,
   }) async {
@@ -303,7 +303,6 @@ class DatabaseService {
           'ListProductRelation',
           {
             'quantity': quantity,
-            'price': price,
             'is_checked': isChecked ? 1 : 0,
             'position': position,
           },
@@ -411,30 +410,58 @@ class DatabaseService {
     final db = await database;
 
     try {
-      final List<Map<String, dynamic>> listMaps = await db.query(
-        'Lists',
-        where: 'id = ?',
-        whereArgs: [listId],
+      ProductList? existingList = getIt<ProductListService>().findListById(
+        listId,
       );
 
-      if (listMaps.isEmpty) {
-        return null;
+      ProductList? productList = existingList;
+
+      if (productList == null) {
+        final List<Map<String, dynamic>> listMaps = await db.query(
+          'Lists',
+          where: 'id = ?',
+          whereArgs: [listId],
+        );
+
+        if (listMaps.isEmpty) {
+          return null;
+        }
+
+        productList = ProductList.fromMap(listMaps.first);
       }
 
-      final productList = ProductList.fromMap(listMaps.first);
+      if (productList.products.value.isNotEmpty) {
+        productList.products.value = [];
+      }
+      productList.productRelations.clear();
 
-      final products = await getProductsInList(listId);
-
-      final relations = await getProductRelationsInList(listId);
-
-      return ProductList(
-        id: productList.id,
-        name: productList.name,
-        createdAt: productList.createdAt,
-        updatedAt: productList.updatedAt,
-        products: products,
-        productRelations: relations,
+      // Get product relations for this list
+      final List<Map<String, dynamic>> relations = await db.query(
+        'ListProductRelation',
+        where: 'list_id = ?',
+        whereArgs: [listId],
+        orderBy: 'position ASC',
       );
+
+      // Fetch products for each relation
+      List<Product> products = [];
+
+      for (var relation in relations) {
+        final productId = relation['product_id'] as int;
+        final listRelation = ListProductRelation.fromMap(relation);
+        productList.productRelations[productId] = listRelation;
+
+        // Get the product details
+        final Product? product = await getProductById(productId);
+        if (product != null) {
+          products.add(product);
+        }
+      }
+
+      // Update the products in the list
+      productList.products.value = products;
+
+      return productList;
     } catch (e) {
       debugPrint('Error getting product list with products: $e');
       return null;

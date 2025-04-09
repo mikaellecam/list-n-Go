@@ -28,6 +28,47 @@ class ProductListService {
     }
   }
 
+  Future<void> loadListsWithProducts() async {
+    isLoading.value = true;
+    error.value = null;
+
+    try {
+      final basicLists = await _getListsFromDb();
+      debugPrint(
+        'Loaded ${basicLists.length} basic lists, now loading products...',
+      );
+
+      List<ProductList> completeLists = [];
+
+      for (final list in basicLists) {
+        if (list.id != null) {
+          final completeList = await db.getProductListWithProducts(list.id!);
+          debugPrint("completeList: ${completeList?.hashCode}");
+          if (completeList != null) {
+            completeLists.add(completeList);
+            debugPrint(
+              'Loaded list: ${completeList.name} with ${completeList.products.value.length} products',
+            );
+          } else {
+            completeLists.add(list);
+            debugPrint('Could not load products for list: ${list.name}');
+          }
+        } else {
+          completeLists.add(list);
+        }
+      }
+
+      lists.value = completeLists;
+      print("hashcodes: ${lists.value.first.hashCode}");
+      debugPrint('All lists loaded with products');
+    } catch (e) {
+      error.value = 'Failed to load lists with products: $e';
+      debugPrint('Failed to load lists with products: $e');
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
   Future<bool> addList(String name) async {
     isLoading.value = true;
     error.value = null;
@@ -152,6 +193,8 @@ class ProductListService {
         return false;
       }
 
+      final actualList = findListById(listId) ?? productList;
+
       final result = await db.addProductToList(
         listId,
         productId,
@@ -169,17 +212,19 @@ class ProductListService {
           position: position,
         );
 
-        final existingProductIndex = productList.products.value.indexWhere(
+        final existingProductIndex = actualList.products.value.indexWhere(
           (p) => p.id == productId,
         );
+
         if (existingProductIndex >= 0) {
-          productList.productRelations[productId] = relation;
+          actualList.productRelations[productId] = relation;
         } else {
-          productList.addProduct(product, relation);
+          actualList.addProduct(product, relation);
         }
 
-        if (currentList.value?.id == listId) {
-          currentList.value = productList;
+        if (currentList.value?.id == listId &&
+            currentList.value != actualList) {
+          currentList.value = actualList;
         }
 
         return true;
@@ -219,5 +264,15 @@ class ProductListService {
     } finally {
       isLoading.value = false;
     }
+  }
+
+  ProductList? findListById(int id) {
+    print("lists: ${lists.value}");
+    final index = lists.value.indexWhere((list) => list.id == id);
+    if (index >= 0) {
+      print('hashcode inside findListById: ${lists.value[index].hashCode}');
+      return lists.value[index];
+    }
+    return null;
   }
 }

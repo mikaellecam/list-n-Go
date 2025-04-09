@@ -213,9 +213,6 @@ class ProductService {
           final product = _mapToProduct(productData, barcode);
           debugPrint('Produit mappé avec succès: ${product.name}');
 
-          // Sauvegarder le produit dans la base de données locale
-          await saveProduct(product);
-
           currentProduct.value = product;
           return product;
         } else {
@@ -280,9 +277,6 @@ class ProductService {
               try {
                 Product product = _mapToProduct(productData, barcode);
                 products.add(product);
-
-                // Sauvegarder le produit dans la base de données locale
-                await saveProduct(product);
               } catch (e) {
                 debugPrint('Erreur lors du mapping d\'un produit: $e');
               }

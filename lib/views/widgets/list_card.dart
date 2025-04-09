@@ -59,7 +59,11 @@ class _ListCardState extends State<ListCard> {
         padding: const EdgeInsets.all(8.0),
         child: InkWell(
           onTap: () {
-            _productListService.currentList.value = widget.productList;
+            final actualList = getIt<ProductListService>().findListById(
+              widget.productList.id!,
+            );
+            print(actualList.hashCode);
+            getIt<ProductListService>().currentList.value = actualList;
             context.push('/list');
           },
           splashColor: Colors.transparent,

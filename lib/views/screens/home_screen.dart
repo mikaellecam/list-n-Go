@@ -27,7 +27,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _loadProductLists() async {
-    await _productListService.loadLists();
+    await _productListService.loadListsWithProducts();
   }
 
   @override

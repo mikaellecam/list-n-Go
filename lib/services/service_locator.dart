@@ -15,5 +15,5 @@ Future<void> setupServiceLocator() async {
 
   getIt.registerLazySingleton<ProductService>(() => ProductService());
 
-  await getIt<ProductListService>().loadLists();
+  await getIt<ProductListService>().loadListsWithProducts();
 }
