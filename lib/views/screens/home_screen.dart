@@ -66,6 +66,133 @@ class _HomeScreenState extends State<HomeScreen> {
     final TextEditingController textController = TextEditingController();
 
     try {
+      String? name = await showModalBottomSheet<String>(
+        context: context,
+        isScrollControlled: true,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        builder: (context) {
+          return Padding(
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(context).viewInsets.bottom,
+              left: 16,
+              right: 16,
+              top: 16,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Nouvelle liste',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: const Color.fromRGBO(247, 147, 76, 1.0),
+                      ),
+                    ),
+                    IconButton(
+                      icon: Icon(Icons.close),
+                      onPressed: () => context.pop(),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: textController,
+                  autofocus: false,
+                  decoration: InputDecoration(
+                    hintText: 'Nom de la liste',
+                    filled: true,
+                    fillColor: Colors.white,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(
+                        color: Color.fromRGBO(247, 176, 91, 1.0),
+                      ),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(
+                        color: Color.fromRGBO(247, 176, 91, 1.0),
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(
+                        color: Color.fromRGBO(247, 147, 76, 1.0),
+                        width: 2,
+                      ),
+                    ),
+                  ),
+                  onSubmitted: (value) => context.pop(value),
+                ),
+                const SizedBox(height: 24),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                      onPressed: () => context.pop(),
+                      child: Text(
+                        'Annuler',
+                        style: TextStyle(color: Colors.grey[700]),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    ElevatedButton(
+                      onPressed: () => context.pop(textController.text),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color.fromRGBO(
+                          247,
+                          147,
+                          76,
+                          1.0,
+                        ),
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
+                      ),
+                      child: Text('Créer'),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+              ],
+            ),
+          );
+        },
+      );
+
+      if (name != null && name.isNotEmpty) {
+        await _productListService.addList(name);
+
+        if (_productListService.error.value != null && mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(_productListService.error.value!),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    } finally {
+      textController.dispose();
+    }
+  }
+  /*
+  Future<void> _createNewList() async {
+    final TextEditingController textController = TextEditingController();
+
+    try {
       String? name = await showDialog<String>(
         context: context,
         builder:
@@ -105,7 +232,7 @@ class _HomeScreenState extends State<HomeScreen> {
     } finally {
       textController.dispose();
     }
-  }
+  }*/
 
   Widget _buildTabButton(
     BuildContext context,
@@ -196,6 +323,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildFavoritesView() {
+    // TODO: Fix the receipts view
     return ListView(
       padding: const EdgeInsets.only(top: 10),
       // test affichage //
