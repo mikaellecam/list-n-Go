@@ -65,7 +65,9 @@ class _ProductScreenState extends State<ProductScreen> {
 
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 243, 243, 243),
-      appBar: CustomAppBar(),
+      appBar: CustomAppBar(
+        onBackPressed: () => productService.currentProduct.value = null,
+      ),
       body: ValueListenableBuilder<Product?>(
         valueListenable: productService.currentProduct,
         builder: (context, product, child) {

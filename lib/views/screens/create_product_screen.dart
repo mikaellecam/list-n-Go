@@ -27,6 +27,16 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
 
   final ScrollController _scrollController = ScrollController();
 
+  // Liste des options valides pour le Nutri-score
+  final List<String> nutriscoreOptions = [
+    'Non concerné',
+    'A',
+    'B',
+    'C',
+    'D',
+    'E',
+  ];
+
   @override
   void initState() {
     super.initState();
@@ -42,6 +52,8 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
   void _loadCurrentProduct() {
     if (productService.currentProduct.value != null) {
       final product = productService.currentProduct.value!;
+      print("Produit chargé: ${product.toString()}");
+
       _isEditing = true;
       _productId = product.id;
 
@@ -57,11 +69,44 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
       }
 
       if (product.nutriScore != null) {
+        // Normaliser la valeur du Nutri-score pour qu'elle corresponde à l'une des options de la liste
+        String normalizedValue = _normalizeNutriScore(product.nutriScore!);
+
+        print("Nutriscore original: '${product.nutriScore}'");
+        print("Nutriscore normalisé: '$normalizedValue'");
+
         setState(() {
-          valeurNutriscore = product.nutriScore!;
+          valeurNutriscore = normalizedValue;
         });
       }
     }
+  }
+
+  // Méthode pour normaliser la valeur du Nutri-score
+  String _normalizeNutriScore(String value) {
+    // Si c'est une lettre unique, la mettre en majuscule
+    if (value.length == 1) {
+      String upperValue = value.toUpperCase();
+      if (nutriscoreOptions.contains(upperValue)) {
+        return upperValue;
+      }
+    }
+
+    // Pour "Non concerné", vérifier différentes variations
+    if (value.toLowerCase() == 'non concerné' ||
+        value.toLowerCase() == 'non concerne' ||
+        value.toLowerCase() == 'non-concerné' ||
+        value.toLowerCase() == 'non-concerne') {
+      return 'Non concerné';
+    }
+
+    // Si aucune normalisation n'a fonctionné, vérifier si la valeur existe déjà dans les options
+    if (nutriscoreOptions.contains(value)) {
+      return value;
+    }
+
+    // Si aucune correspondance, retourner chaîne vide pour utiliser la valeur null du dropdown
+    return '';
   }
 
   void _updateLoadingState() {
@@ -193,7 +238,9 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
 
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 243, 243, 243),
-      appBar: CustomAppBar(),
+      appBar: CustomAppBar(
+        onBackPressed: () => productService.currentProduct.value = null,
+      ),
       body: LayoutBuilder(
         builder: (context, constraints) {
           return Container(
@@ -500,7 +547,7 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
                                       ),
                                     ),
                                     value:
-                                        valeurNutriscore == ''
+                                        valeurNutriscore.isEmpty
                                             ? null
                                             : valeurNutriscore,
                                     onChanged: (String? newValue) {
@@ -522,21 +569,16 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
                                       fontFamily: 'Lato',
                                     ),
                                     items:
-                                        <String>[
-                                          'Non concerné',
-                                          'A',
-                                          'B',
-                                          'C',
-                                          'D',
-                                          'E',
-                                        ].map<DropdownMenuItem<String>>((
-                                          String value,
-                                        ) {
-                                          return DropdownMenuItem<String>(
-                                            value: value,
-                                            child: Text(value),
-                                          );
-                                        }).toList(),
+                                        nutriscoreOptions
+                                            .map<DropdownMenuItem<String>>((
+                                              String value,
+                                            ) {
+                                              return DropdownMenuItem<String>(
+                                                value: value,
+                                                child: Text(value),
+                                              );
+                                            })
+                                            .toList(),
                                   ),
                                 ),
                                 SizedBox(height: 15),
