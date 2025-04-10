@@ -7,6 +7,7 @@ import 'package:listngo/models/product_list.dart';
 import 'package:listngo/services/product_list_service.dart';
 import 'package:listngo/services/receipt_service.dart';
 import 'package:listngo/services/service_locator.dart';
+import 'package:listngo/views/widgets/custom_app_bar.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -404,11 +405,7 @@ class _ListCompletionScreenState extends State<ListCompletionScreen> {
 
   Widget _buildNormalView() {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Finaliser la liste'),
-        backgroundColor: const Color.fromRGBO(247, 147, 76, 1.0),
-        foregroundColor: Colors.white,
-      ),
+      appBar: CustomAppBar(),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
@@ -429,7 +426,7 @@ class _ListCompletionScreenState extends State<ListCompletionScreen> {
                         'Liste: ${productList.name}',
                         style: const TextStyle(
                           fontSize: 18,
-                          fontWeight: FontWeight.bold,
+                          color: Colors.black,
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -446,7 +443,7 @@ class _ListCompletionScreenState extends State<ListCompletionScreen> {
               // Receipt image guidance
               const Text(
                 'Prenez une photo de votre ticket de caisse',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                style: TextStyle(fontSize: 16, color: Colors.black),
               ),
               const SizedBox(height: 8),
 
@@ -546,7 +543,7 @@ class _ListCompletionScreenState extends State<ListCompletionScreen> {
               const SizedBox(height: 24),
               const Text(
                 'Montant total',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                style: TextStyle(fontSize: 16, color: Colors.black),
               ),
               const SizedBox(height: 8),
               TextField(
@@ -554,6 +551,7 @@ class _ListCompletionScreenState extends State<ListCompletionScreen> {
                 keyboardType: const TextInputType.numberWithOptions(
                   decimal: true,
                 ),
+                style: const TextStyle(color: Colors.black),
                 decoration: InputDecoration(
                   hintText:
                       isScanning

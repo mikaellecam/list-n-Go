@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:listngo/views/widgets/custom_app_bar.dart';
 import 'package:listngo/views/widgets/product_card_ticket.dart';
-
 
 class TicketScreen extends StatefulWidget {
   const TicketScreen({super.key});
@@ -10,22 +10,16 @@ class TicketScreen extends StatefulWidget {
 }
 
 class _TicketScreenState extends State<TicketScreen> {
-
   @override
   void initState() {
     super.initState();
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 243, 243, 243),
-      appBar: AppBar(
-        title: Image.asset('assets/app_assets/list-n-go_logo.png', height: 50),
-        centerTitle: true,
-        backgroundColor: const Color.fromARGB(255, 243, 243, 243),
-      ),
+      appBar: CustomAppBar(),
       body: Column(
         children: [
           // Titre centré horizontalement
@@ -90,8 +84,10 @@ class _TicketScreenState extends State<TicketScreen> {
                   ),
                 ),
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 10,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(16),
@@ -109,10 +105,7 @@ class _TicketScreenState extends State<TicketScreen> {
                       SizedBox(width: 20),
                       Text(
                         'TTC',
-                        style: TextStyle(
-                          color: Colors.black87,
-                          fontSize: 16,
-                        ),
+                        style: TextStyle(color: Colors.black87, fontSize: 16),
                       ),
                     ],
                   ),
@@ -133,7 +126,8 @@ class _TicketScreenState extends State<TicketScreen> {
               ),
               child: const Center(
                 child: Icon(
-                  Icons.picture_in_picture, // Change selon ce que tu veux mettre
+                  Icons
+                      .picture_in_picture, // Change selon ce que tu veux mettre
                   color: Colors.white,
                 ),
               ),

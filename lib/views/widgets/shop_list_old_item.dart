@@ -9,22 +9,20 @@ class ReceiptItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      color: const Color.fromRGBO(255, 255, 255, 1.0),
+      color: Colors.white,
       margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       elevation: 2,
       child: ListTile(
         leading: const Icon(Icons.receipt_long, color: Colors.orange, size: 40),
-        title: Text(
-          title,
-          softWrap: true,
-          overflow: TextOverflow.ellipsis,
+        title: DefaultTextStyle(
           style: const TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w700,
-            fontFamily: "Lato",
+            fontFamily: "Lato-black",
             color: Colors.black,
           ),
+          child: Text(title, softWrap: true, overflow: TextOverflow.ellipsis),
         ),
         subtitle: Text(
           "Le $date",

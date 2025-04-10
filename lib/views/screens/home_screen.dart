@@ -111,6 +111,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 const SizedBox(height: 16),
                 TextField(
                   controller: textController,
+                  style: TextStyle(color: Colors.black),
                   autofocus: false,
                   decoration: InputDecoration(
                     hintText: 'Nom de la liste',
