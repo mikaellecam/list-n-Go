@@ -78,6 +78,7 @@ class _SearchScreenState extends State<SearchScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color.fromARGB(255, 243, 243, 243),
       appBar: const CustomAppBar(),
       body: Column(
         children: [
@@ -110,14 +111,31 @@ class _SearchScreenState extends State<SearchScreen> {
               style: TextStyle(color: Colors.black),
               decoration: InputDecoration(
                 hintText: 'Rechercher un produit',
-                hintStyle: TextStyle(color: Colors.black),
                 prefixIcon: const Icon(Icons.search),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(25),
-                  borderSide: BorderSide.none,
-                ),
+                hintStyle: const TextStyle(color: Colors.black54),
                 filled: true,
-                fillColor: Colors.grey[200],
+                fillColor: Colors.white,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(30),
+                  borderSide: const BorderSide(
+                    color: Color.fromRGBO(247, 176, 91, 1.0),
+                    width: 2,
+                  ),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(30),
+                  borderSide: const BorderSide(
+                    color: Color.fromRGBO(247, 176, 91, 1.0),
+                    width: 2,
+                  ),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(30),
+                  borderSide: const BorderSide(
+                    color: Color.fromRGBO(247, 147, 76, 1.0),
+                    width: 2.5,
+                  ),
+                ),
               ),
               onSubmitted: _performSearch,
             ),

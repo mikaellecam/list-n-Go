@@ -28,11 +28,7 @@ class ReceiptItem extends StatelessWidget {
         ),
         subtitle: Text(
           "Le $date",
-          style: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-            fontFamily: "Lato-black",
-          ),
+          style: const TextStyle(fontSize: 15, fontFamily: "Lato-black"),
         ),
         trailing: Image.asset(
           'assets/app_assets/suivant_icon.png',
