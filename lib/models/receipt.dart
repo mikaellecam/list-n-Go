@@ -73,4 +73,9 @@ class Receipt {
     products.value = newList;
     productRelations.remove(productId);
   }
+
+  @override
+  String toString() {
+    return 'Receipt{id: $id, name: $name, price: $price, imagePath: $imagePath, createdAt: $createdAt, products: ${products.value.length} items}';
+  }
 }

@@ -86,6 +86,7 @@ class ReceiptService {
         name: productList.name,
         price: totalPrice,
         createdAt: now,
+        imagePath: imagePath,
       );
 
       final receiptId = await db.insertReceipt(receipt);

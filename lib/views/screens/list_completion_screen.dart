@@ -331,11 +331,7 @@ class _ListCompletionScreenState extends State<ListCompletionScreen> {
 
   Widget _buildCameraView() {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Scanner le ticket'),
-        backgroundColor: const Color.fromRGBO(247, 147, 76, 1.0),
-        foregroundColor: Colors.white,
-      ),
+      appBar: CustomAppBar(),
       body:
           _isCameraInitialized
               ? Stack(
@@ -370,7 +366,7 @@ class _ListCompletionScreenState extends State<ListCompletionScreen> {
                   // Loading indicator
                   if (isScanning)
                     Container(
-                      color: Colors.black.withValues(alpha: 0.5),
+                      color: Colors.black.withOpacity(0.5),
                       child: const Center(
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
@@ -391,15 +387,6 @@ class _ListCompletionScreenState extends State<ListCompletionScreen> {
                 ],
               )
               : const Center(child: CircularProgressIndicator()),
-      floatingActionButton:
-          _isCameraInitialized && !isScanning
-              ? FloatingActionButton.small(
-                onPressed: _toggleCameraMode,
-                backgroundColor: Colors.white,
-                child: const Icon(Icons.close, color: Colors.black),
-              )
-              : null,
-      floatingActionButtonLocation: FloatingActionButtonLocation.startTop,
     );
   }
 
