@@ -56,6 +56,26 @@ class Product {
     );
   }
 
+  @override
+  String toString() {
+    return 'Product{'
+        'id: $id, '
+        'barcode: $barcode, '
+        'name: $name, '
+        'keywords: ${keywords?.join(', ')}, '
+        'isApi: $isApi, '
+        'quantity: $quantity, '
+        'date: ${date?.toIso8601String()}, '
+        'imagePath: $imagePath, '
+        'nutriScore: $nutriScore, '
+        'fat: $fat, '
+        'saturatedFat: $saturatedFat, '
+        'sugar: $sugar, '
+        'salt: $salt, '
+        'createdAt: ${createdAt?.toIso8601String()}'
+        '}';
+  }
+
   Map<String, dynamic> toMap() {
     final map = <String, dynamic>{'name': name};
 
