@@ -156,16 +156,19 @@ class _ProductListScreenState extends State<ProductListScreen> {
                                           contentPadding: EdgeInsets.zero,
                                         ),
                                       )
-                                      : Text(
-                                        currentList.name,
-                                        style: const TextStyle(
-                                          fontSize: 24,
-                                          fontFamily: "Lato",
-                                          color: Colors.black,
+                                      : Padding(
+                                        padding: EdgeInsets.only(left: 15),
+                                        child: Text(
+                                          currentList.name,
+                                          style: const TextStyle(
+                                            fontSize: 24,
+                                            fontFamily: "Lato",
+                                            color: Colors.black,
+                                          ),
+                                          softWrap: true,
+                                          maxLines: 2,
+                                          overflow: TextOverflow.ellipsis,
                                         ),
-                                        softWrap: true,
-                                        maxLines: 2,
-                                        overflow: TextOverflow.ellipsis,
                                       ),
                             ),
                             _isRenaming
