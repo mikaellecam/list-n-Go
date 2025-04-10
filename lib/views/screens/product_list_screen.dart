@@ -24,12 +24,15 @@ class _ProductListScreenState extends State<ProductListScreen> {
   bool _isRenaming = false;
   bool _isExpanded = false;
 
+  late final int currentListId;
+
   @override
   void initState() {
     super.initState();
     _controller = TextEditingController(
       text: productListService.currentList.value!.name,
     );
+    currentListId = productListService.currentList.value!.id!;
   }
 
   void toggleExpandOptions() {
@@ -60,6 +63,56 @@ class _ProductListScreenState extends State<ProductListScreen> {
     }
     productListService.currentList.value!.name = newName;
     productListService.updateList(productListService.currentList.value!);
+  }
+
+  Future<void> _handleAddProductToList(Product product) async {
+    ProductList? currentList = productListService.currentList.value;
+
+    if (currentList == null) {
+      currentList = productListService.findListById(currentListId);
+
+      if (currentList != null) {
+        productListService.currentList.value = currentList;
+      }
+    }
+
+    if (currentList == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Erreur: Impossible de trouver la liste actuelle'),
+          backgroundColor: Colors.red,
+          duration: Duration(seconds: 2),
+        ),
+      );
+      return;
+    }
+
+    final result = await productListService.addProductToList(
+      product,
+      quantity: 1.0,
+      isChecked: false,
+      position: productListService.currentList.value!.products.value.length,
+    );
+
+    if (result) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('${product.name} ajouté à la liste'),
+          backgroundColor: const Color.fromRGBO(247, 147, 76, 1.0),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Erreur: ${productListService.error.value ?? "Impossible d\'ajouter le produit"}',
+          ),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    }
   }
 
   @override
@@ -252,11 +305,25 @@ class _ProductListScreenState extends State<ProductListScreen> {
                               final barcode = await context.push(
                                 '/barcode-scanner',
                               );
-                              print("Barcode: $barcode");
                               if (barcode != null && barcode is String) {
                                 Product? product = await productService
                                     .getProductByBarcode(barcode);
-                                print("Product: $product");
+
+                                if (product != null) {
+                                  await _handleAddProductToList(product);
+                                } else {
+                                  if (context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          'Produit non trouvé pour le code-barres: $barcode',
+                                        ),
+                                        backgroundColor: Colors.red,
+                                        duration: const Duration(seconds: 2),
+                                      ),
+                                    );
+                                  }
+                                }
                               }
                             }
                           },
