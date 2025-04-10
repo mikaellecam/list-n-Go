@@ -159,6 +159,30 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
     }
   }
 
+  // Widget pour créer un placeholder sans appel réseau ni asset
+  Widget _buildPlaceholder() {
+    return Container(
+      color: Colors.grey[200],
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.image_not_supported, size: 50, color: Colors.grey[500]),
+            SizedBox(height: 10),
+            Text(
+              'Aucune image',
+              style: TextStyle(
+                color: Colors.grey[600],
+                fontSize: 16,
+                fontFamily: 'Lato',
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
@@ -197,20 +221,37 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
                                         .value!
                                         .imagePath!,
                                     fit: BoxFit.contain,
-                                    errorBuilder:
-                                        (
-                                          context,
-                                          error,
-                                          stackTrace,
-                                        ) => Image.network(
-                                          'https://www.annuaire-bijoux.com/wp-content/themes/first-mag/img/noprew-related.jpg',
-                                          fit: BoxFit.contain,
+                                    loadingBuilder: (
+                                      context,
+                                      child,
+                                      loadingProgress,
+                                    ) {
+                                      if (loadingProgress == null) return child;
+                                      return Center(
+                                        child: CircularProgressIndicator(
+                                          color: const Color.fromRGBO(
+                                            247,
+                                            147,
+                                            76,
+                                            1.0,
+                                          ),
+                                          value:
+                                              loadingProgress
+                                                          .expectedTotalBytes !=
+                                                      null
+                                                  ? loadingProgress
+                                                          .cumulativeBytesLoaded /
+                                                      loadingProgress
+                                                          .expectedTotalBytes!
+                                                  : null,
                                         ),
+                                      );
+                                    },
+                                    errorBuilder: (context, error, stackTrace) {
+                                      return _buildPlaceholder();
+                                    },
                                   )
-                                  : Image.network(
-                                    'https://www.annuaire-bijoux.com/wp-content/themes/first-mag/img/noprew-related.jpg',
-                                    fit: BoxFit.contain,
-                                  ),
+                                  : _buildPlaceholder(),
                         ),
                         Positioned(
                           bottom: 10,
