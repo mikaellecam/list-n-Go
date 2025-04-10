@@ -4,8 +4,9 @@ import 'package:go_router/go_router.dart';
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final Widget? titleWidget;
   final VoidCallback? onBackPressed;
+  final Color? backgroundColor;
 
-  const CustomAppBar({super.key, this.titleWidget, this.onBackPressed});
+  const CustomAppBar({super.key, this.titleWidget, this.onBackPressed, this.backgroundColor});
 
   @override
   Widget build(BuildContext context) {
@@ -17,7 +18,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
         }
       },
       child: AppBar(
-        backgroundColor: const Color.fromARGB(255, 243, 243, 243),
+        backgroundColor: backgroundColor ?? const Color.fromARGB(255, 243, 243, 243),
         automaticallyImplyLeading: true,
         title: Image.asset('assets/app_assets/list-n-go_logo.png', height: 50),
         centerTitle: true,

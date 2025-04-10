@@ -70,7 +70,7 @@ class _SearchScreenState extends State<SearchScreen> {
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Erreur lors de l\'ajout de ${productList.name}'),
+            content: Text('Erreur lors de l\'ajout du produit à ${productList.name}'),
           ),
         );
       }
