@@ -196,7 +196,7 @@ class _SearchScreenState extends State<SearchScreen> {
               )
               : const Icon(Icons.shopping_bag, size: 50),
       title: InkWell(
-        onTap: () => print("button pressed"), //context.push('/product-detail'),
+        onTap: () => _addProductToCurrentProduct(product),
         child: Text(product.name),
       ),
       subtitle: Text(product.quantity ?? ''),
@@ -205,5 +205,11 @@ class _SearchScreenState extends State<SearchScreen> {
         onPressed: () => _addProductToList(product),
       ),
     );
+  }
+
+  void _addProductToCurrentProduct(Product product) {
+    _productService.currentProduct.value = product;
+    context.push('/product');
+    return;
   }
 }
