@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:listngo/models/product.dart';
@@ -57,6 +59,66 @@ class _ProductScreenState extends State<ProductScreen> {
   void initState() {
     super.initState();
     checkVisibility();
+
+    if (productService.currentProduct.value != null) {
+      print(
+        "Produit chargé: ${productService.currentProduct.value.toString()}",
+      );
+    }
+  }
+
+  // Widget pour afficher l'image du produit
+  Widget _displayProductImage(Product product) {
+    if (product.imagePath == null || product.imagePath!.isEmpty) {
+      return const Icon(
+        Icons.image_not_supported,
+        size: 64,
+        color: Colors.grey,
+      );
+    }
+
+    // Si le produit n'est pas isApi (donc un produit local), utiliser File
+    if (!product.isApi) {
+      return Image.file(
+        File(product.imagePath!),
+        fit: BoxFit.contain,
+        errorBuilder: (context, error, stackTrace) {
+          print("Erreur de chargement de l'image locale: $error");
+          return const Icon(
+            Icons.image_not_supported,
+            size: 64,
+            color: Colors.grey,
+          );
+        },
+      );
+    } else {
+      // Pour les produits API, utiliser Image.network
+      return Image.network(
+        product.imagePath!,
+        fit: BoxFit.contain,
+        loadingBuilder: (context, child, loadingProgress) {
+          if (loadingProgress == null) return child;
+          return Center(
+            child: CircularProgressIndicator(
+              color: const Color.fromRGBO(247, 147, 76, 1.0),
+              value:
+                  loadingProgress.expectedTotalBytes != null
+                      ? loadingProgress.cumulativeBytesLoaded /
+                          loadingProgress.expectedTotalBytes!
+                      : null,
+            ),
+          );
+        },
+        errorBuilder: (context, error, stackTrace) {
+          print("Erreur de chargement de l'image réseau: $error");
+          return const Icon(
+            Icons.image_not_supported,
+            size: 64,
+            color: Colors.grey,
+          );
+        },
+      );
+    }
   }
 
   @override
@@ -79,6 +141,9 @@ class _ProductScreenState extends State<ProductScreen> {
             );
           }
 
+          // Mettre à jour la visibilité à chaque construction du widget
+          checkVisibility();
+
           return LayoutBuilder(
             builder: (context, constraints) {
               return Stack(
@@ -94,25 +159,7 @@ class _ProductScreenState extends State<ProductScreen> {
                         Container(
                           height: screenHeight * 0.25,
                           width: double.infinity,
-                          child:
-                              product.imagePath != null &&
-                                      product.imagePath!.isNotEmpty
-                                  ? Image.network(
-                                    product.imagePath!,
-                                    fit: BoxFit.contain,
-                                    errorBuilder: (context, error, stackTrace) {
-                                      return const Icon(
-                                        Icons.image_not_supported,
-                                        size: 64,
-                                        color: Colors.grey,
-                                      );
-                                    },
-                                  )
-                                  : const Icon(
-                                    Icons.image_not_supported,
-                                    size: 64,
-                                    color: Colors.grey,
-                                  ),
+                          child: _displayProductImage(product),
                         ),
 
                         // Container avec les détails du produit avec coins arrondis
