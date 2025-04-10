@@ -61,10 +61,10 @@ class _SearchBarWithAddState extends State<SearchBarWithAdd> {
           if (widget.showAddButton) ...[
             const SizedBox(width: 8),
             IconButton(
-              icon: Image.asset(
-                'assets/app_assets/plus_light-orange_icon.png',
-                width: 50,
-                height: 50,
+              icon: Icon(
+                Icons.add_circle_rounded,
+                color: Color.fromRGBO(247, 147, 76, 1.0),
+                size: 50,
               ),
               onPressed: widget.onAddButtonPressed,
             ),
