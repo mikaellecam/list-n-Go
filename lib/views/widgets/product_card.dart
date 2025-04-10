@@ -4,215 +4,184 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:listngo/models/product.dart';
 
-import '../../services/product_list_service.dart';
+import '../../services/product_service.dart';
 import '../../services/service_locator.dart';
 
 class ProductCard extends StatefulWidget {
-  Product product;
+  final Product product;
 
-  ProductCard({super.key, required this.product});
+  const ProductCard({super.key, required this.product});
 
   @override
   _ProductCardState createState() => _ProductCardState();
 }
 
 class _ProductCardState extends State<ProductCard> {
-  bool _isChecked = false;
-  int _quantity = 1;
+  final ProductService _productService = getIt<ProductService>();
 
-  void _addQuantity() {
-    setState(() {
-      if (_quantity < 99) {
-        _quantity++;
-      }
-    });
+  void _navigateToProductDetails() {
+    // Mettre à jour le produit courant dans le service
+    _productService.currentProduct.value = widget.product;
+    // Naviguer vers la page de détail du produit
+    context.push('/product');
   }
 
-  void _subtractQuantity() {
-    setState(() {
-      if (_quantity > 1) {
-        _quantity--;
-      }
-    });
+  // Widget pour afficher l'image du produit selon sa source
+  Widget _displayProductImage() {
+    if (widget.product.imagePath == null || widget.product.imagePath!.isEmpty) {
+      return Container(
+        width: 100,
+        height: 100,
+        decoration: BoxDecoration(
+          color: Colors.grey[200],
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Icon(Icons.shopping_bag, size: 50, color: Colors.grey[400]),
+      );
+    }
+
+    // Si le produit n'est pas isApi (donc un produit local), utiliser File
+    if (!widget.product.isApi) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: Image.file(
+          File(widget.product.imagePath!),
+          width: 100,
+          height: 100,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) {
+            print("Erreur de chargement de l'image locale: $error");
+            return Container(
+              width: 100,
+              height: 100,
+              decoration: BoxDecoration(
+                color: Colors.grey[200],
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Icon(
+                Icons.image_not_supported,
+                size: 50,
+                color: Colors.grey[400],
+              ),
+            );
+          },
+        ),
+      );
+    } else {
+      // Pour les produits API, utiliser Image.network
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: Image.network(
+          widget.product.imagePath!,
+          width: 100,
+          height: 100,
+          fit: BoxFit.cover,
+          loadingBuilder: (context, child, loadingProgress) {
+            if (loadingProgress == null) return child;
+            return Container(
+              width: 100,
+              height: 100,
+              decoration: BoxDecoration(
+                color: Colors.grey[200],
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Center(
+                child: CircularProgressIndicator(
+                  color: const Color.fromRGBO(247, 147, 76, 1.0),
+                  value:
+                      loadingProgress.expectedTotalBytes != null
+                          ? loadingProgress.cumulativeBytesLoaded /
+                              loadingProgress.expectedTotalBytes!
+                          : null,
+                ),
+              ),
+            );
+          },
+          errorBuilder: (context, error, stackTrace) {
+            print("Erreur de chargement de l'image réseau: $error");
+            return Container(
+              width: 100,
+              height: 100,
+              decoration: BoxDecoration(
+                color: Colors.grey[200],
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Icon(
+                Icons.image_not_supported,
+                size: 50,
+                color: Colors.grey[400],
+              ),
+            );
+          },
+        ),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: EdgeInsets.only(left: 15),
-      child: Container(
-        decoration: BoxDecoration(borderRadius: BorderRadius.circular(16)),
-        padding: EdgeInsets.all(10),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(16),
-              child:
-                  widget.product.isApi
-                      ? Image.network(
-                        widget.product.imagePath!,
-                        /*'https://www.lahalleauxplantes.com/wp-content/uploads/2020/12/tomatoes-5962167-300x300.jpg'*/
-                        width: 100,
-                        height: 100,
-                        fit: BoxFit.cover,
-                        loadingBuilder: (context, child, loadingProgress) {
-                          return child;
-                        },
-                      )
-                      : Image.file(
-                        File(widget.product.imagePath!),
-                        width: 100,
-                        height: 100,
-                        fit: BoxFit.cover,
-                      ),
-            ),
-            const SizedBox(width: 20),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    widget.product.name,
-                    softWrap: true,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 15,
-                      color: Colors.black,
-                      fontFamily: 'Lato',
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  SizedBox(height: 20),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
-                        children: [
-                          GestureDetector(
-                            onTap: _subtractQuantity,
-                            child: Image.asset(
-                              'assets/app_assets/minus_icon.png',
-                              width: 42,
-                              height: 42,
-                            ),
-                          ),
-                          Text(
-                            ' $_quantity ',
+      child: GestureDetector(
+        onTap: _navigateToProductDetails,
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            color: Colors.white.withOpacity(0.5),
+          ),
+          padding: EdgeInsets.all(10),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _displayProductImage(),
+              const SizedBox(width: 20),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            widget.product.name,
+                            softWrap: true,
+                            overflow: TextOverflow.ellipsis,
                             style: TextStyle(
-                              fontSize: 10,
+                              fontSize: 15,
                               color: Colors.black,
                               fontFamily: 'Lato',
+                              fontWeight: FontWeight.w700,
                             ),
                           ),
-                          GestureDetector(
-                            onTap: _addQuantity,
-                            child: Padding(
-                              padding: EdgeInsets.only(top: 3),
-                              child: Image.asset(
-                                'assets/app_assets/plus_orange_icon.png',
-                                width: 40,
-                                height: 40,
-                              ),
-                            ),
+                        ),
+                        // Indicateur de navigation
+                        Icon(
+                          Icons.arrow_forward_ios,
+                          size: 14,
+                          color: Colors.grey[400],
+                        ),
+                      ],
+                    ),
+                    if (widget.product.quantity != null &&
+                        widget.product.quantity!.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 4.0),
+                        child: Text(
+                          widget.product.quantity!,
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Colors.grey[600],
+                            fontFamily: 'Lato',
                           ),
-                        ],
+                        ),
                       ),
-                      SizedBox(width: 15),
-                      Row(
-                        children: [
-                          IconButton(
-                            icon: Icon(Icons.delete_outline),
-                            onPressed: () async {
-                              bool? confirm = await showDialog(
-                                context: context,
-                                builder:
-                                    (context) => AlertDialog(
-                                      title: const Text('Confirmation'),
-                                      content: const Text(
-                                        'Êtes-vous sûr de vouloir supprimer cet élément ?',
-                                      ),
-                                      actions: <Widget>[
-                                        TextButton(
-                                          onPressed: () => context.pop(false),
-                                          child: const Text('Annuler'),
-                                        ),
-                                        TextButton(
-                                          onPressed: () => context.pop(true),
-                                          child: const Text('Supprimer'),
-                                        ),
-                                      ],
-                                    ),
-                              );
-
-                              if (confirm != null && confirm) {
-                                await getIt<ProductListService>()
-                                    .removeProductFromList(
-                                      widget.product,
-                                      listId:
-                                          getIt<ProductListService>()
-                                              .currentList
-                                              .value!
-                                              .id!,
-                                    );
-                              }
-                            },
-                          ),
-                          AnimatedContainer(
-                            duration: Duration(milliseconds: 300),
-                            width: 40,
-                            height: 40,
-                            decoration: BoxDecoration(
-                              color:
-                                  _isChecked // TODO Need to use the product-list relation with the checked
-                                      ? Color.fromRGBO(247, 147, 76, 1.0)
-                                      : Colors.white,
-                              borderRadius: BorderRadius.circular(25),
-                              border: Border.all(
-                                color: Color.fromRGBO(247, 147, 76, 1.0),
-                                width: 2,
-                              ),
-                              boxShadow:
-                                  _isChecked
-                                      ? [
-                                        BoxShadow(
-                                          color: Colors.black26,
-                                          blurRadius: 4,
-                                          offset: Offset(0, 2),
-                                        ),
-                                      ]
-                                      : [],
-                            ),
-                            child: Material(
-                              color: Colors.transparent,
-                              child: InkWell(
-                                borderRadius: BorderRadius.circular(25),
-                                onTap: () {
-                                  setState(() {
-                                    _isChecked = !_isChecked;
-                                  });
-                                },
-                                child: Center(
-                                  child: Icon(
-                                    _isChecked ? Icons.check : Icons.add,
-                                    color:
-                                        _isChecked
-                                            ? Colors.white
-                                            : Color.fromRGBO(247, 147, 76, 1.0),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
