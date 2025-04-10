@@ -11,6 +11,8 @@ import 'package:sqflite/sqflite.dart';
 import '../models/list_product_relation.dart';
 import '../models/product.dart';
 import '../models/product_list.dart';
+import '../models/receipt.dart';
+import '../models/receipt_product_relation.dart';
 
 class DatabaseService {
   static final DatabaseService _instance = DatabaseService._internal();
@@ -91,26 +93,27 @@ class DatabaseService {
     ''');
 
     await db.execute('''
-      CREATE TABLE Receipt (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT,
-        price REAL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      )
-    ''');
+  CREATE TABLE Receipts (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT,
+    price REAL,
+    image_path TEXT,
+    created_at TEXT
+  )
+''');
 
     await db.execute('''
-      CREATE TABLE ReceiptProductRelation (
-        receipt_id INTEGER NOT NULL,
-        product_id INTEGER NOT NULL,
-        quantity REAL NOT NULL DEFAULT 1,
-        position INTEGER DEFAULT 0,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        PRIMARY KEY (receipt_id, product_id),
-        FOREIGN KEY (receipt_id) REFERENCES Receipt (id) ON DELETE CASCADE,
-        FOREIGN KEY (product_id) REFERENCES Products (id) ON DELETE CASCADE
-      )
-    ''');
+  CREATE TABLE ReceiptProductRelation (
+    receipt_id INTEGER,
+    product_id INTEGER,
+    quantity REAL DEFAULT 1.0,
+    position INTEGER DEFAULT 0,
+    created_at TEXT,
+    PRIMARY KEY (receipt_id, product_id),
+    FOREIGN KEY (receipt_id) REFERENCES receipts (id) ON DELETE CASCADE,
+    FOREIGN KEY (product_id) REFERENCES products (id) ON DELETE CASCADE
+  )
+''');
   }
 
   Future<int> insert(String table, Map<String, dynamic> row) async {
@@ -469,6 +472,144 @@ class DatabaseService {
       return productList;
     } catch (e) {
       debugPrint('Error getting product list with products: $e');
+      return null;
+    }
+  }
+
+  Future<int> insertReceipt(Receipt receipt) async {
+    final db = await database;
+    return await db.insert('Receipts', receipt.toMap());
+  }
+
+  Future<Receipt?> getReceiptById(int id) async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.query(
+      'Receipts',
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+
+    if (maps.isEmpty) {
+      return null;
+    }
+
+    return Receipt.fromMap(maps.first);
+  }
+
+  Future<List<Receipt>> getAllReceipts() async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.query(
+      'Receipts',
+      orderBy: 'created_at DESC',
+    );
+
+    return List.generate(maps.length, (i) {
+      return Receipt.fromMap(maps[i]);
+    });
+  }
+
+  Future<int> updateReceipt(Receipt receipt) async {
+    final db = await database;
+    return await db.update(
+      'Receipts',
+      receipt.toMap(),
+      where: 'id = ?',
+      whereArgs: [receipt.id],
+    );
+  }
+
+  Future<int> deleteReceipt(int id) async {
+    final db = await database;
+    await db.delete(
+      'ReceiptProductRelation',
+      where: 'receipt_id = ?',
+      whereArgs: [id],
+    );
+    return await db.delete('Receipts', where: 'id = ?', whereArgs: [id]);
+  }
+
+  Future<int> addProductToReceipt(ReceiptProductRelation relation) async {
+    final db = await database;
+    return await db.insert('ReceiptProductRelation', relation.toMap());
+  }
+
+  Future<int> removeProductFromReceipt(int receiptId, int productId) async {
+    final db = await database;
+    return await db.delete(
+      'ReceiptProductRelation',
+      where: 'receipt_id = ? AND product_id = ?',
+      whereArgs: [receiptId, productId],
+    );
+  }
+
+  Future<Receipt?> getReceiptWithProducts(int receiptId) async {
+    try {
+      final db = await database;
+
+      final receiptMaps = await db.query(
+        'Receipts',
+        where: 'id = ?',
+        whereArgs: [receiptId],
+      );
+
+      if (receiptMaps.isEmpty) {
+        return null;
+      }
+
+      final receipt = Receipt.fromMap(receiptMaps.first);
+
+      final relationMaps = await db.query(
+        'ReceiptProductRelation',
+        where: 'receipt_id = ?',
+        whereArgs: [receiptId],
+        orderBy: 'position ASC',
+      );
+
+      final Map<int, ReceiptProductRelation> relations = {};
+      final List<int> productIds = [];
+
+      for (var relationMap in relationMaps) {
+        final relation = ReceiptProductRelation.fromMap(relationMap);
+        relations[relation.productId] = relation;
+        productIds.add(relation.productId);
+      }
+
+      if (productIds.isEmpty) {
+        return receipt;
+      }
+
+      final productMaps = await db.query(
+        'Products',
+        where: 'id IN (${List.filled(productIds.length, '?').join(', ')})',
+        whereArgs: productIds,
+      );
+
+      final List<Product> products = [];
+
+      for (var productMap in productMaps) {
+        final product = Product.fromMap(productMap);
+        if (product.id != null) {
+          products.add(product);
+        }
+      }
+
+      products.sort((a, b) {
+        final posA = relations[a.id!]?.position ?? 0;
+        final posB = relations[b.id!]?.position ?? 0;
+        return posA.compareTo(posB);
+      });
+
+      return Receipt(
+        id: receipt.id,
+        name: receipt.name,
+        price: receipt.price,
+        imagePath: receipt.imagePath,
+        createdAt: receipt.createdAt,
+        products: ValueNotifier(products),
+        productRelations: relations,
+      );
+    } catch (e) {
+      print('Error getting receipt with products: $e');
       return null;
     }
   }

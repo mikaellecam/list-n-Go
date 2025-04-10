@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:listngo/models/receipt.dart';
 import 'package:listngo/services/product_list_service.dart';
+import 'package:listngo/services/receipt_service.dart';
 import 'package:listngo/services/service_locator.dart';
 import 'package:listngo/views/widgets/custom_app_bar.dart';
-import 'package:listngo/views/widgets/shop_list_old_item.dart';
+import 'package:listngo/views/widgets/receipt_card.dart';
 
 import '../../models/product_list.dart';
 import '../widgets/list_card.dart';
@@ -19,6 +21,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedTab = 0;
   final ProductListService _productListService = getIt<ProductListService>();
+  final ReceiptService _receiptService = getIt<ReceiptService>();
 
   @override
   void initState() {
@@ -28,6 +31,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _loadProductLists() async {
     await _productListService.loadListsWithProducts();
+  }
+
+  Future<void> _loadReceiptLists() async {
+    await _receiptService.loadReceiptsWithProducts();
   }
 
   @override
@@ -188,51 +195,6 @@ class _HomeScreenState extends State<HomeScreen> {
       textController.dispose();
     }
   }
-  /*
-  Future<void> _createNewList() async {
-    final TextEditingController textController = TextEditingController();
-
-    try {
-      String? name = await showDialog<String>(
-        context: context,
-        builder:
-            (context) => AlertDialog(
-              title: Text('Nouvelle liste'),
-              content: TextField(
-                controller: textController,
-                autofocus: true,
-                decoration: InputDecoration(hintText: 'Nom de la liste'),
-                onSubmitted: (value) => context.pop(value),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => context.pop(),
-                  child: Text('Annuler'),
-                ),
-                TextButton(
-                  onPressed: () => context.pop(textController.text),
-                  child: Text('Créer'),
-                ),
-              ],
-            ),
-      );
-
-      if (name != null && name.isNotEmpty) {
-        await _productListService.addList(name);
-
-        if (_productListService.error.value != null && mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(_productListService.error.value!),
-              backgroundColor: Colors.red,
-            ),
-          );
-        }
-      }
-    } finally {
-      textController.dispose();
-    }
-  }*/
 
   Widget _buildTabButton(
     BuildContext context,
@@ -323,15 +285,43 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildFavoritesView() {
-    // TODO: Fix the receipts view
-    return ListView(
-      padding: const EdgeInsets.only(top: 10),
-      // test affichage //
-      children: const [
-        ReceiptItem(title: 'Carrefour', date: '5 avril 2025'),
-        ReceiptItem(title: 'Biocoop', date: '2 avril 2025'),
-      ],
-      ////////////////////
+    return ValueListenableBuilder<List<Receipt>>(
+      valueListenable: _receiptService.receipts,
+      builder: (context, lists, child) {
+        return ValueListenableBuilder<bool>(
+          valueListenable: _receiptService.isLoading,
+          builder: (context, isLoading, child) {
+            if (isLoading) {
+              return const Center(child: CircularProgressIndicator());
+            }
+
+            if (lists.isEmpty) {
+              return Center(
+                child: Text(
+                  "Aucun ticket disponible",
+                  style: TextStyle(fontSize: 18, color: Colors.grey),
+                ),
+              );
+            }
+            return RefreshIndicator(
+              onRefresh: _loadReceiptLists,
+              child: ListView.builder(
+                itemCount: lists.length,
+                itemBuilder: (context, index) {
+                  final list = lists[index];
+                  return ReceiptCard(
+                    receipt: list,
+                    onTap: () {
+                      _receiptService.currentReceipt.value = list;
+                      context.push('/receipt');
+                    },
+                  );
+                },
+              ),
+            );
+          },
+        );
+      },
     );
   }
 }

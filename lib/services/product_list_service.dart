@@ -30,29 +30,23 @@ class ProductListService {
   }
 
   Future<void> loadListsWithProducts() async {
-    isLoading.value = true;
-    error.value = null;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      isLoading.value = true;
+      error.value = null;
+    });
 
     try {
       final basicLists = await _getListsFromDb();
-      debugPrint(
-        'Loaded ${basicLists.length} basic lists, now loading products...',
-      );
 
       List<ProductList> completeLists = [];
 
       for (final list in basicLists) {
         if (list.id != null) {
           final completeList = await db.getProductListWithProducts(list.id!);
-          debugPrint("completeList: ${completeList?.hashCode}");
           if (completeList != null) {
             completeLists.add(completeList);
-            debugPrint(
-              'Loaded list: ${completeList.name} with ${completeList.products.value.length} products',
-            );
           } else {
             completeLists.add(list);
-            debugPrint('Could not load products for list: ${list.name}');
           }
         } else {
           completeLists.add(list);
@@ -60,11 +54,8 @@ class ProductListService {
       }
 
       lists.value = completeLists;
-      print("hashcodes: ${lists.value.first.hashCode}");
-      debugPrint('All lists loaded with products');
     } catch (e) {
       error.value = 'Failed to load lists with products: $e';
-      debugPrint('Failed to load lists with products: $e');
     } finally {
       isLoading.value = false;
     }
