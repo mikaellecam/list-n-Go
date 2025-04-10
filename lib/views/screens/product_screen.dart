@@ -129,6 +129,7 @@ class _ProductScreenState extends State<ProductScreen> {
       backgroundColor: const Color.fromARGB(255, 243, 243, 243),
       appBar: CustomAppBar(
         onBackPressed: () => productService.currentProduct.value = null,
+          backgroundColor: Colors.white
       ),
       body: ValueListenableBuilder<Product?>(
         valueListenable: productService.currentProduct,
@@ -186,7 +187,7 @@ class _ProductScreenState extends State<ProductScreen> {
                                   Text(
                                     product.name,
                                     style: const TextStyle(
-                                      fontSize: 25,
+                                      fontSize: 22,
                                       fontWeight: FontWeight.bold,
                                       color: Colors.black,
                                       fontFamily: 'Lato',
@@ -231,7 +232,7 @@ class _ProductScreenState extends State<ProductScreen> {
                                     const Text(
                                       'Unité ',
                                       style: TextStyle(
-                                        fontSize: 20,
+                                        fontSize: 18,
                                         fontWeight: FontWeight.bold,
                                         color: Colors.black,
                                         fontFamily: 'Lato',
@@ -246,9 +247,9 @@ class _ProductScreenState extends State<ProductScreen> {
                                       ),
                                     ),
                                     const Text(
-                                      ':',
+                                      ' : ',
                                       style: TextStyle(
-                                        fontSize: 20,
+                                        fontSize: 18,
                                         fontWeight: FontWeight.bold,
                                         color: Colors.black,
                                         fontFamily: 'Lato',
@@ -267,7 +268,7 @@ class _ProductScreenState extends State<ProductScreen> {
                                           product.quantity!,
                                           textAlign: TextAlign.right,
                                           style: const TextStyle(
-                                            fontSize: 20,
+                                            fontSize: 16,
                                             fontWeight: FontWeight.bold,
                                             color: Colors.black,
                                             fontFamily: 'Lato',
@@ -290,18 +291,18 @@ class _ProductScreenState extends State<ProductScreen> {
                                     const Text(
                                       'Nutri-Score :',
                                       style: TextStyle(
-                                        fontSize: 20,
+                                        fontSize: 18,
                                         fontWeight: FontWeight.bold,
                                         color: Colors.black,
                                         fontFamily: 'Lato',
                                       ),
                                     ),
                                     Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 30,
+                                      padding: const EdgeInsets.only(
+                                        right: 50,
                                       ),
                                       child: SizedBox(
-                                        width: 170,
+                                        width: 140,
                                         child: _buildNutriScoreImage(
                                           product.nutriScore!,
                                         ),
@@ -322,7 +323,7 @@ class _ProductScreenState extends State<ProductScreen> {
                                   child: Text(
                                     'Valeurs nutritionnelles :',
                                     style: TextStyle(
-                                      fontSize: 20,
+                                      fontSize: 18,
                                       fontWeight: FontWeight.bold,
                                       color: Colors.black,
                                       fontFamily: 'Lato',
@@ -538,7 +539,7 @@ class _ProductScreenState extends State<ProductScreen> {
         Text(
           label,
           style: const TextStyle(
-            fontSize: 16,
+            fontSize: 14,
             color: Colors.black,
             fontFamily: 'Lato',
           ),
@@ -560,7 +561,7 @@ class _ProductScreenState extends State<ProductScreen> {
             Text(
               levelText,
               style: TextStyle(
-                fontSize: 16,
+                fontSize: 14,
                 fontWeight: FontWeight.bold,
                 color: color,
                 fontFamily: 'Lato',
