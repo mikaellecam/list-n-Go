@@ -3,8 +3,10 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:listngo/models/product.dart';
+import 'package:listngo/services/product_list_service.dart';
 import 'package:listngo/services/product_service.dart';
 
+import '../../models/product_list.dart';
 import '../../services/service_locator.dart';
 import '../widgets/custom_app_bar.dart';
 
@@ -28,6 +30,86 @@ class _ProductScreenState extends State<ProductScreen> {
   };
 
   final ProductService productService = getIt<ProductService>();
+  final ProductListService productListService = getIt<ProductListService>();
+  late final ProductList productList;
+
+  bool _isProductInCurrentList = false;
+
+  // Modification de la méthode _addProductToList pour garantir la mise à jour du bouton
+  void _addProductToList(Product product) {
+    // Afficher un indicateur de chargement
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder:
+          (dialogContext) => const Center(
+            child: CircularProgressIndicator(
+              color: Color.fromRGBO(247, 147, 76, 1.0),
+            ),
+          ),
+    );
+
+    productListService
+        .addProductToList(product)
+        .then((success) {
+          // Fermer l'indicateur de chargement
+          if (context.canPop()) Navigator.of(context).pop();
+
+          if (success) {
+            // Mettre à jour l'état pour refléter que le produit est maintenant dans la liste
+            setState(() {
+              _isProductInCurrentList = true;
+            });
+
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('${product.name} ajouté à ${productList.name}'),
+              ),
+            );
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  'Erreur lors de l\'ajout du produit à ${productList.name}',
+                ),
+                backgroundColor: Colors.red,
+                duration: const Duration(seconds: 2),
+              ),
+            );
+          }
+        })
+        .catchError((error) {
+          // Fermer l'indicateur de chargement en cas d'erreur
+          if (context.canPop()) Navigator.of(context).pop();
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Erreur: $error'),
+              backgroundColor: Colors.red,
+              duration: const Duration(seconds: 2),
+            ),
+          );
+        });
+  }
+
+  // Modification de la méthode de vérification pour ne pas écraser l'état d'ajout manuel
+  void checkIfProductInCurrentList() {
+    // Ne pas mettre à jour si _isProductInCurrentList est déjà true
+    if (_isProductInCurrentList) return;
+
+    final product = productService.currentProduct.value;
+    final currentList = productListService.currentList.value;
+
+    if (product == null || currentList == null || product.id == null) {
+      _isProductInCurrentList = false;
+      return;
+    }
+
+    // Vérifier si le produit est dans la liste des produits de la liste courante
+    _isProductInCurrentList = currentList.products.value.any(
+      (p) => p.id == product.id,
+    );
+  }
 
   void checkVisibility() {
     final product = productService.currentProduct.value;
@@ -57,10 +139,96 @@ class _ProductScreenState extends State<ProductScreen> {
         visibilityMap['salt']!;
   }
 
+  // Méthode pour ajouter le produit à la liste courante
+  Future<void> _addProductToCurrentList() async {
+    final product = productService.currentProduct.value;
+    final currentList = productListService.currentList.value;
+
+    if (product == null || currentList == null || product.id == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Erreur: Impossible d\'ajouter le produit à la liste'),
+          backgroundColor: Colors.red,
+          duration: Duration(seconds: 2),
+        ),
+      );
+      return;
+    }
+
+    // Afficher un indicateur de chargement
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder:
+          (context) => const Center(
+            child: CircularProgressIndicator(
+              color: Color.fromRGBO(247, 147, 76, 1.0),
+            ),
+          ),
+    );
+
+    try {
+      final result = await productListService.addProductToList(
+        product,
+        quantity: 1.0,
+        isChecked: false,
+        position: productListService.currentList.value!.products.value.length,
+      );
+
+      // Fermer le dialogue de chargement
+      if (context.canPop()) context.pop();
+
+      if (result) {
+        setState(() {
+          _isProductInCurrentList = true;
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              '${product.name} ajouté à la liste ${currentList.name}',
+            ),
+            backgroundColor: const Color.fromRGBO(247, 147, 76, 1.0),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Erreur: ${productListService.error.value ?? "Impossible d\'ajouter le produit"}',
+            ),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (e) {
+      // Fermer le dialogue de chargement en cas d'erreur
+      if (context.canPop()) context.pop();
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Erreur: $e'),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    }
+  }
+
+  // Méthode pour naviguer vers la liste des produits
+  void _navigateToProductList() {
+    context.push('/list');
+  }
+
   @override
   void initState() {
     super.initState();
     checkVisibility();
+    checkIfProductInCurrentList();
+
+    productList = getIt<ProductListService>().currentList.value!;
 
     if (productService.currentProduct.value != null) {
       print(
@@ -146,6 +314,9 @@ class _ProductScreenState extends State<ProductScreen> {
 
           // Mettre à jour la visibilité à chaque construction du widget
           checkVisibility();
+
+          // Vérifier également si le produit est dans la liste courante à chaque build
+          checkIfProductInCurrentList();
 
           return LayoutBuilder(
             builder: (context, constraints) {
@@ -369,7 +540,7 @@ class _ProductScreenState extends State<ProductScreen> {
                     ),
                   ),
 
-                  // Bouton fixe en bas de l'écran
+                  // Bouton fixe en bas de l'écran (conditionnel en fonction de si le produit est déjà dans la liste)
                   Positioned(
                     left: 0,
                     right: 0,
@@ -390,23 +561,38 @@ class _ProductScreenState extends State<ProductScreen> {
                       child: SizedBox(
                         height: 50,
                         child: ElevatedButton(
-                          onPressed: () {
-                            // Action pour ajouter à la liste
-                          },
+                          onPressed:
+                              productListService.currentList.value == null
+                                  ? null // Désactiver le bouton si pas de liste courante
+                                  : (_isProductInCurrentList
+                                      ? _navigateToProductList // Naviguer vers la liste si déjà présent
+                                      : () => _addProductToList(
+                                        productService.currentProduct.value!,
+                                      )), // Ajouter à la liste sinon
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color.fromRGBO(
-                              247,
-                              147,
-                              76,
-                              1.0,
-                            ),
+                            backgroundColor:
+                                _isProductInCurrentList
+                                    ? Colors
+                                        .green // Vert si déjà présent
+                                    : const Color.fromRGBO(
+                                      247,
+                                      147,
+                                      76,
+                                      1.0,
+                                    ), // Orange sinon
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(25.0),
                             ),
+                            // Bouton grisé si pas de liste courante
+                            disabledBackgroundColor: Colors.grey,
                           ),
-                          child: const Text(
-                            'Ajouter à la liste',
-                            style: TextStyle(
+                          child: Text(
+                            productListService.currentList.value == null
+                                ? 'Aucune liste sélectionnée'
+                                : (_isProductInCurrentList
+                                    ? 'Déjà dans la liste - Voir la liste'
+                                    : 'Ajouter à la liste'),
+                            style: const TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
                               color: Colors.white,
