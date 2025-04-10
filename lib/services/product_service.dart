@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'dart:math';
 
 import 'package:flutter/cupertino.dart';
@@ -25,6 +26,7 @@ class ProductService {
     String? quantity,
     List<String>? keywords,
     String? nutriScore,
+    String? imagePath,
   }) async {
     isLoading.value = true;
     error.value = null;
@@ -35,6 +37,7 @@ class ProductService {
         quantity: quantity,
         keywords: keywords,
         nutriScore: nutriScore,
+        imagePath: imagePath,
         isApi: false,
         // Produit créé manuellement
         createdAt: DateTime.now(),
@@ -70,6 +73,7 @@ class ProductService {
     String? quantity,
     List<String>? keywords,
     String? nutriScore,
+    String? imagePath,
   }) async {
     isLoading.value = true;
     error.value = null;
@@ -83,6 +87,21 @@ class ProductService {
         return -1;
       }
 
+      if (imagePath != null &&
+          existingProduct.imagePath != null &&
+          existingProduct.imagePath != imagePath &&
+          !existingProduct.isApi) {
+        // Supprimer l'ancienne image si elle existe et que le produit n'est pas de l'API
+        try {
+          final oldFile = File(existingProduct.imagePath!);
+          if (await oldFile.exists()) {
+            await oldFile.delete();
+          }
+        } catch (e) {
+          debugPrint('Erreur lors de la suppression de l\'ancienne image: $e');
+        }
+      }
+
       // Créer un nouveau produit avec les valeurs mises à jour
       final updatedProduct = Product(
         id: existingProduct.id,
@@ -93,7 +112,7 @@ class ProductService {
         nutriScore: nutriScore,
         isApi: existingProduct.isApi,
         date: existingProduct.date,
-        imagePath: existingProduct.imagePath,
+        imagePath: imagePath ?? existingProduct.imagePath,
         fat: existingProduct.fat,
         saturatedFat: existingProduct.saturatedFat,
         sugar: existingProduct.sugar,
@@ -403,32 +422,6 @@ class ProductService {
     } catch (e) {
       debugPrint('Erreur lors de la sauvegarde du produit: $e');
       return -1;
-    }
-  }
-
-  // Méthodes internes pour accéder à la base de données
-
-  Future<List<Product>> _getProductsFromDb() async {
-    isLoading.value = true;
-    error.value = null;
-
-    try {
-      return await _db.getAllProducts();
-    } catch (e) {
-      debugPrint('Error fetching products from DB: $e');
-      rethrow;
-    }
-  }
-
-  Future<List<Product>> _searchProductsFromDb(String query) async {
-    isLoading.value = true;
-    error.value = null;
-
-    try {
-      return await _db.searchProducts(query);
-    } catch (e) {
-      debugPrint('Error searching products in DB: $e');
-      rethrow;
     }
   }
 
