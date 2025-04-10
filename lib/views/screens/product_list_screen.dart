@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:listngo/services/product_list_service.dart';
 import 'package:listngo/services/product_service.dart';
+import 'package:listngo/services/receipt_service.dart';
 import 'package:listngo/services/service_locator.dart';
 import 'package:listngo/views/widgets/custom_app_bar.dart';
 
@@ -20,11 +21,13 @@ class ProductListScreen extends StatefulWidget {
 class _ProductListScreenState extends State<ProductListScreen> {
   late final TextEditingController _controller;
   final ProductListService productListService = getIt<ProductListService>();
+  final ReceiptService receiptService = getIt<ReceiptService>();
   final ProductService productService = getIt<ProductService>();
   bool _isRenaming = false;
   bool _isExpanded = false;
 
   late final int currentListId;
+  late final ProductList currentList;
 
   @override
   void initState() {
@@ -32,6 +35,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
     _controller = TextEditingController(
       text: productListService.currentList.value!.name,
     );
+    currentList = productListService.currentList.value!;
     currentListId = productListService.currentList.value!.id!;
   }
 
@@ -117,8 +121,6 @@ class _ProductListScreenState extends State<ProductListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    ProductList currentList = productListService.currentList.value!;
-
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 243, 243, 243),
       appBar: CustomAppBar(
@@ -229,9 +231,6 @@ class _ProductListScreenState extends State<ProductListScreen> {
                   valueListenable:
                       productListService.currentList.value!.products,
                   builder: (context, products, child) {
-                    print(
-                      'current list hashcode (screen) : ${currentList.hashCode}',
-                    );
                     return Column(
                       children:
                           products
@@ -401,8 +400,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
               margin: EdgeInsets.all(25),
               child: TextButton(
                 onPressed: () {
-                  print('Bouton pressé');
-                  // liste terminée
+                  context.push('/complete-list');
                 },
                 child: Text(
                   'Courses terminées',
