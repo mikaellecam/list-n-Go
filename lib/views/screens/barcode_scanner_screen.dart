@@ -23,7 +23,9 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBar(onBackPressed: () => context.pop()),
+      appBar: CustomAppBar(
+        onBackPressed: () => context.pushReplacement('/list'),
+      ),
       body: Stack(
         children: [
           MobileScanner(
