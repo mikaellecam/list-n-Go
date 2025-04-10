@@ -3,6 +3,7 @@ import 'package:listngo/services/database_service.dart';
 import 'package:listngo/services/permission_helper.dart';
 import 'package:listngo/services/product_list_service.dart';
 import 'package:listngo/services/product_service.dart';
+import 'package:listngo/services/receipt_service.dart';
 
 GetIt getIt = GetIt.instance;
 
@@ -15,5 +16,8 @@ Future<void> setupServiceLocator() async {
 
   getIt.registerLazySingleton<ProductService>(() => ProductService());
 
+  getIt.registerLazySingleton<ReceiptService>(() => ReceiptService());
+
   await getIt<ProductListService>().loadListsWithProducts();
+  await getIt<ReceiptService>().loadReceiptsWithProducts();
 }
