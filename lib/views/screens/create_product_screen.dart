@@ -148,23 +148,19 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
     }
   }
 
-  // Method to save the image to the application directory
   Future<String> _saveImageToAppDirectory(XFile file) async {
     final Directory appDir = await getApplicationDocumentsDirectory();
     final String appDirPath = appDir.path;
 
-    // Generate a unique filename using UUID
     final String uniqueFileName =
         '${const Uuid().v4()}${path.extension(file.path)}';
     final String savedImagePath = path.join(appDirPath, uniqueFileName);
 
-    // Copy the picked image to the app directory
     await File(file.path).copy(savedImagePath);
 
     return savedImagePath;
   }
 
-  // Method to delete the temporary image if the user cancels
   Future<void> _deleteTemporaryImage() async {
     if (_hasChangedImage && _imagePath != null) {
       try {
@@ -178,7 +174,6 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
     }
   }
 
-  // Show image source selection dialog
   void _showImageSourceDialog() {
     showDialog(
       context: context,
@@ -217,7 +212,6 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
     );
   }
 
-  // Show confirmation dialog when going back
   Future<bool> _onWillPop() async {
     if (_hasChangedImage ||
         _nameController.text.isNotEmpty ||
@@ -246,7 +240,6 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
       );
 
       if (shouldPop == true) {
-        // Delete the temporary image if user confirms going back
         await _deleteTemporaryImage();
       }
 
@@ -342,10 +335,8 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
     );
   }
 
-  // Display image based on source (local file or network)
   Widget _displayImage() {
     if (_imageFile != null) {
-      // Display local image file
       return Image.file(
         _imageFile!,
         fit: BoxFit.contain,
@@ -356,7 +347,6 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
     } else if (_imagePath != null &&
         _isEditing &&
         productService.currentProduct.value?.isApi == true) {
-      // Display network image
       return Image.network(
         _imagePath!,
         fit: BoxFit.contain,
@@ -392,6 +382,7 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
     final buttonText = _isEditing ? 'Mettre à jour' : 'Créer';
 
     return WillPopScope(
+      // TODO: fix the deprecation
       onWillPop: _onWillPop,
       child: Scaffold(
         backgroundColor: const Color.fromARGB(255, 243, 243, 243),
