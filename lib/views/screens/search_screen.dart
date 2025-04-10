@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:listngo/models/product.dart';
@@ -73,6 +75,60 @@ class _SearchScreenState extends State<SearchScreen> {
         );
       }
     });
+  }
+
+  // Widget pour afficher l'image du produit selon sa source
+  Widget _displayProductImage(Product product, {double size = 50}) {
+    if (product.imagePath == null || product.imagePath!.isEmpty) {
+      return Icon(Icons.shopping_bag, size: size);
+    }
+
+    // Si le produit n'est pas isApi (donc un produit local), utiliser File
+    if (!product.isApi) {
+      return SizedBox(
+        width: size,
+        height: size,
+        child: Image.file(
+          File(product.imagePath!),
+          width: size,
+          height: size,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) {
+            print("Erreur de chargement de l'image locale: $error");
+            return Icon(Icons.image_not_supported, size: size);
+          },
+        ),
+      );
+    } else {
+      // Pour les produits API, utiliser Image.network
+      return SizedBox(
+        width: size,
+        height: size,
+        child: Image.network(
+          product.imagePath!,
+          width: size,
+          height: size,
+          fit: BoxFit.cover,
+          loadingBuilder: (context, child, loadingProgress) {
+            if (loadingProgress == null) return child;
+            return Center(
+              child: CircularProgressIndicator(
+                color: const Color.fromRGBO(247, 147, 76, 1.0),
+                value:
+                    loadingProgress.expectedTotalBytes != null
+                        ? loadingProgress.cumulativeBytesLoaded /
+                            loadingProgress.expectedTotalBytes!
+                        : null,
+              ),
+            );
+          },
+          errorBuilder: (context, error, stackTrace) {
+            print("Erreur de chargement de l'image réseau: $error");
+            return Icon(Icons.image_not_supported, size: size);
+          },
+        ),
+      );
+    }
   }
 
   @override
@@ -202,17 +258,7 @@ class _SearchScreenState extends State<SearchScreen> {
 
   Widget _buildProductListItem(Product product) {
     return ListTile(
-      leading:
-          product.imagePath != null
-              ? Image.network(
-                product.imagePath!,
-                width: 50,
-                height: 50,
-                errorBuilder: (context, error, stackTrace) {
-                  return const Icon(Icons.image_not_supported, size: 50);
-                },
-              )
-              : const Icon(Icons.shopping_bag, size: 50),
+      leading: _displayProductImage(product, size: 50),
       title: InkWell(
         onTap: () => _addProductToCurrentProduct(product),
         child: Text(product.name),

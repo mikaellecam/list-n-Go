@@ -33,9 +33,11 @@ class _ProductScreenState extends State<ProductScreen> {
     final product = productService.currentProduct.value;
     if (product == null) return;
 
-    // Vérification de Nutriscore
+    // Vérification de Nutriscore - seulement A, B, C, D ou E sont valides
+    final validNutriScores = ['A', 'B', 'C', 'D', 'E'];
     visibilityMap['nutriscore'] =
-        product.nutriScore != null && product.nutriScore!.isNotEmpty;
+        product.nutriScore != null &&
+        validNutriScores.contains(product.nutriScore!.toUpperCase());
 
     // Vérification de Quantity
     visibilityMap['quantity'] =
@@ -129,7 +131,7 @@ class _ProductScreenState extends State<ProductScreen> {
       backgroundColor: const Color.fromARGB(255, 243, 243, 243),
       appBar: CustomAppBar(
         onBackPressed: () => productService.currentProduct.value = null,
-          backgroundColor: Colors.white
+        backgroundColor: Colors.white,
       ),
       body: ValueListenableBuilder<Product?>(
         valueListenable: productService.currentProduct,
@@ -230,24 +232,7 @@ class _ProductScreenState extends State<ProductScreen> {
                                   textBaseline: TextBaseline.alphabetic,
                                   children: [
                                     const Text(
-                                      'Unité ',
-                                      style: TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.black,
-                                        fontFamily: 'Lato',
-                                      ),
-                                    ),
-                                    const Text(
-                                      '(poids/volume/litre) ',
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        color: Colors.black,
-                                        fontFamily: 'Lato',
-                                      ),
-                                    ),
-                                    const Text(
-                                      ' : ',
+                                      'Unité :',
                                       style: TextStyle(
                                         fontSize: 18,
                                         fontWeight: FontWeight.bold,
@@ -298,9 +283,7 @@ class _ProductScreenState extends State<ProductScreen> {
                                       ),
                                     ),
                                     Padding(
-                                      padding: const EdgeInsets.only(
-                                        right: 50,
-                                      ),
+                                      padding: const EdgeInsets.only(right: 50),
                                       child: SizedBox(
                                         width: 140,
                                         child: _buildNutriScoreImage(
