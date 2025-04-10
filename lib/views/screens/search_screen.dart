@@ -195,15 +195,15 @@ class _SearchScreenState extends State<SearchScreen> {
                 },
               )
               : const Icon(Icons.shopping_bag, size: 50),
-      title: Text(product.name),
+      title: InkWell(
+        onTap: () => print("button pressed"), //context.push('/product-detail'),
+        child: Text(product.name),
+      ),
       subtitle: Text(product.quantity ?? ''),
       trailing: IconButton(
         icon: const Icon(Icons.add_circle, color: Color(0xFFF9945E)),
         onPressed: () => _addProductToList(product),
       ),
-      onTap: () {
-        context.push('/product-detail');
-      },
     );
   }
 }

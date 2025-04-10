@@ -155,7 +155,7 @@ class _ProductCardState extends State<ProductCard> {
                                               .currentList
                                               .value!
                                               .id!,
-                                    ); // TODO: Fix list not updating in real time
+                                    );
                               }
                             },
                           ),

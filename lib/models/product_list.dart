@@ -56,7 +56,10 @@ class ProductList {
   }
 
   void removeProduct(int productId) {
-    products.value.removeWhere((product) => product.id == productId);
+    final newList = List<Product>.from(products.value)
+      ..removeWhere((product) => product.id == productId);
+    products.value = newList;
+
     productRelations.remove(productId);
   }
 
