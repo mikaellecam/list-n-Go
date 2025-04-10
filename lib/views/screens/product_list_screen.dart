@@ -25,6 +25,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
   final ProductService productService = getIt<ProductService>();
   bool _isRenaming = false;
   bool _isExpanded = false;
+  bool _allItemsSelected = false;
 
   late final int currentListId;
   late final ProductList currentList;
@@ -37,6 +38,72 @@ class _ProductListScreenState extends State<ProductListScreen> {
     );
     currentList = productListService.currentList.value!;
     currentListId = productListService.currentList.value!.id!;
+
+    // Vérifier l'état initial de la sélection
+    _checkAllItemsSelectedState();
+  }
+
+  // Méthode pour vérifier si tous les produits sont sélectionnés
+  void _checkAllItemsSelectedState() {
+    if (productListService.currentList.value != null &&
+        productListService.currentList.value!.products.value.isNotEmpty) {
+      final products = productListService.currentList.value!.products.value;
+      bool allSelected = true;
+
+      for (var product in products) {
+        final relation =
+            productListService.currentList.value!.productRelations[product.id!];
+        if (relation == null || !relation.isChecked) {
+          allSelected = false;
+          break;
+        }
+      }
+
+      setState(() {
+        _allItemsSelected = allSelected;
+      });
+    } else {
+      setState(() {
+        _allItemsSelected = false;
+      });
+    }
+  }
+
+  // Méthode pour sélectionner/désélectionner tous les produits
+  Future<void> _toggleAllItems() async {
+    final products = productListService.currentList.value!.products.value;
+    final bool newState = !_allItemsSelected;
+
+    setState(() {
+      _allItemsSelected = newState;
+    });
+
+    // Mettre à jour chaque produit
+    for (var product in products) {
+      // Obtenir la position actuelle et la quantité
+      final relation =
+          productListService.currentList.value!.productRelations[product.id!];
+      final position = relation?.position ?? 0;
+      final quantity = relation?.quantity ?? 1.0;
+
+      try {
+        // Supprimer le produit de la liste
+        await productListService.removeProductFromList(
+          product,
+          listId: currentListId,
+        );
+
+        // Réajouter avec le nouvel état de sélection
+        await productListService.addProductToList(
+          product,
+          quantity: quantity,
+          isChecked: newState,
+          position: position,
+        );
+      } catch (e) {
+        debugPrint('Erreur lors de la mise à jour de l\'état: $e');
+      }
+    }
   }
 
   void toggleExpandOptions() {
@@ -213,15 +280,59 @@ class _ProductListScreenState extends State<ProductListScreen> {
                 ),
                 Container(
                   alignment: Alignment.topRight,
-                  padding: EdgeInsets.all(10),
+                  padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                   child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
                     children: [
-                      Text(
-                        'Tout sélectionner',
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontFamily: "Lato",
-                          color: Colors.black,
+                      InkWell(
+                        onTap: _toggleAllItems,
+                        child: Row(
+                          children: [
+                            Text(
+                              _allItemsSelected
+                                  ? 'Tout désélectionner'
+                                  : 'Tout sélectionner',
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontFamily: "Lato",
+                                color: Colors.black,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Container(
+                              width: 24,
+                              height: 24,
+                              decoration: BoxDecoration(
+                                border: Border.all(
+                                  color: const Color.fromRGBO(
+                                    247,
+                                    147,
+                                    76,
+                                    1.0,
+                                  ),
+                                  width: 2,
+                                ),
+                                borderRadius: BorderRadius.circular(4),
+                                color:
+                                    _allItemsSelected
+                                        ? const Color.fromRGBO(
+                                          247,
+                                          147,
+                                          76,
+                                          1.0,
+                                        )
+                                        : Colors.white,
+                              ),
+                              child:
+                                  _allItemsSelected
+                                      ? const Icon(
+                                        Icons.check,
+                                        size: 18,
+                                        color: Colors.white,
+                                      )
+                                      : null,
+                            ),
+                          ],
                         ),
                       ),
                     ],
@@ -231,10 +342,23 @@ class _ProductListScreenState extends State<ProductListScreen> {
                   valueListenable:
                       productListService.currentList.value!.products,
                   builder: (context, products, child) {
+                    // Mettre à jour l'état de sélection lorsque les produits changent
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      _checkAllItemsSelectedState();
+                    });
+
                     return Column(
                       children:
                           products
-                              .map((product) => ProductCard(product: product))
+                              .map(
+                                (product) => ProductCard(
+                                  product: product,
+                                  onCheckedChanged: (_) {
+                                    // Vérifier l'état de sélection après la mise à jour
+                                    _checkAllItemsSelectedState();
+                                  },
+                                ),
+                              )
                               .toList(),
                     );
                   },
@@ -248,7 +372,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
               child: GestureDetector(
                 onTap: toggleExpandOptions,
                 behavior: HitTestBehavior.translucent,
-                child: Container(color: Colors.black.withValues(alpha: 0.5)),
+                child: Container(color: Colors.black.withOpacity(0.5)),
               ),
             ),
           if (_isExpanded)
@@ -272,7 +396,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                             borderRadius: BorderRadius.circular(20),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.1),
+                                color: Colors.black.withOpacity(0.1),
                                 spreadRadius: 1,
                                 blurRadius: 3,
                                 offset: const Offset(0, 1),
@@ -350,7 +474,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                           borderRadius: BorderRadius.circular(20),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.1),
+                              color: Colors.black.withOpacity(0.1),
                               spreadRadius: 1,
                               blurRadius: 3,
                               offset: const Offset(0, 1),

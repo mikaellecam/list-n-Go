@@ -1,13 +1,13 @@
 import 'package:go_router/go_router.dart';
 import 'package:listngo/views/screens/barcode_scanner_screen.dart';
 import 'package:listngo/views/screens/list_completion_screen.dart';
+import 'package:listngo/views/screens/ticket_screen.dart';
 
 import '../views/screens/create_product_screen.dart';
 import '../views/screens/home_screen.dart';
 import '../views/screens/product_list_screen.dart';
 import '../views/screens/product_screen.dart';
 import '../views/screens/profile_screen.dart';
-import '../views/screens/purchase_history_list_screen.dart';
 import '../views/screens/search_screen.dart';
 
 final GoRouter router = GoRouter(
@@ -23,12 +23,8 @@ final GoRouter router = GoRouter(
     ),
     GoRoute(path: '/profile', builder: (context, state) => ProfileScreen()),
     GoRoute(
-      path: '/purchase-history-list',
-      builder: (context, state) => PurchaseHistoryListScreen(),
-    ),
-    GoRoute(
       path: '/purchase-history',
-      builder: (context, state) => const PurchaseHistoryListScreen(),
+      builder: (context, state) => TicketScreen(),
     ),
     GoRoute(
       path: '/barcode-scanner',

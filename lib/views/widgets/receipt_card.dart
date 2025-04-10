@@ -67,10 +67,7 @@ class ReceiptCard extends StatelessWidget {
                   children: [
                     Text(
                       receipt.name ?? 'Ticket sans nom',
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
+                      style: const TextStyle(fontSize: 18, color: Colors.black),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
