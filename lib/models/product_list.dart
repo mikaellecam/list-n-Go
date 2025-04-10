@@ -51,7 +51,8 @@ class ProductList {
   }
 
   void addProduct(Product product, ListProductRelation relation) {
-    products.value.add(product);
+    final newList = List<Product>.from(products.value)..add(product);
+    products.value = newList;
     productRelations[product.id!] = relation;
   }
 
