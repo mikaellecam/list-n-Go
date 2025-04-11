@@ -31,6 +31,24 @@ class ListProductRelation {
     );
   }
 
+  ListProductRelation copyWith({
+    int? listId,
+    int? productId,
+    double? quantity,
+    bool? isChecked,
+    int? position,
+    DateTime? createdAt,
+  }) {
+    return ListProductRelation(
+      listId: listId ?? this.listId,
+      productId: productId ?? this.productId,
+      quantity: quantity ?? this.quantity,
+      isChecked: isChecked ?? this.isChecked,
+      position: position ?? this.position,
+      createdAt: createdAt ?? this.createdAt,
+    );
+  }
+
   factory ListProductRelation.fromMap(Map<String, dynamic> map) {
     return ListProductRelation(
       listId: map['list_id'],

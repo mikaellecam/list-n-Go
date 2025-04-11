@@ -313,12 +313,55 @@ class ProductListService {
   }
 
   ProductList? findListById(int id) {
-    print("lists: ${lists.value}");
     final index = lists.value.indexWhere((list) => list.id == id);
     if (index >= 0) {
-      print('hashcode inside findListById: ${lists.value[index].hashCode}');
       return lists.value[index];
     }
     return null;
+  }
+
+  Future<void> checkProductInList(
+    Product product,
+    ProductList productList,
+  ) async {
+    isLoading.value = true;
+    error.value = null;
+
+    try {
+      final listId = productList.id;
+      final productId = product.id;
+
+      if (listId == null) {
+        error.value = 'List ID is null';
+        return;
+      }
+      if (productId == null) {
+        error.value = 'Product ID is null';
+        return;
+      }
+
+      await db.checkProductInList(listId, productId);
+
+      final actualList = findListById(listId);
+      if (actualList == null) {
+        error.value = 'List not found in service';
+        return;
+      }
+
+      final index = actualList.products.value.indexWhere(
+        (p) => p.id == productId,
+      );
+      if (index >= 0) {
+        actualList.productRelations.update(
+          productId,
+          (relation) => relation.copyWith(isChecked: !relation.isChecked),
+        );
+      }
+    } catch (e) {
+      error.value = 'Error checking product in list: $e';
+      debugPrint('Error checking product in list: $e');
+    } finally {
+      isLoading.value = false;
+    }
   }
 }

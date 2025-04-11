@@ -1,4 +1,5 @@
 import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:listngo/models/product.dart';
@@ -131,23 +132,11 @@ class _ProductCardState extends State<ProductCard> {
         currentList.id != null &&
         widget.product.id != null) {
       try {
-        // Supprimer spécifiquement ce produit
-        await _productListService.removeProductFromList(
+        await _productListService.checkProductInList(
           widget.product,
-          listId: currentList.id!,
+          currentList,
         );
 
-        // Puis réajouter avec le nouvel état
-        await _productListService.addProductToList(
-          widget.product,
-          quantity: _quantity.toDouble(),
-          isChecked: newCheckedState,
-          // Conserver la position d'origine si elle existe
-          position:
-              currentList.productRelations[widget.product.id!]?.position ?? 0,
-        );
-
-        // Appeler le callback pour notifier le parent du changement d'état
         if (widget.onCheckedChanged != null) {
           widget.onCheckedChanged!(newCheckedState);
         }

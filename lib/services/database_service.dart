@@ -613,4 +613,20 @@ class DatabaseService {
       return null;
     }
   }
+
+  Future<int> checkProductInList(int productId, int productListId) async {
+    try {
+      final db = await database;
+
+      return await db.update(
+        'ListProductRelation',
+        {'is_checked': 1},
+        where: 'list_id = ? AND product_id = ?',
+        whereArgs: [productId, productListId],
+      );
+    } catch (e) {
+      debugPrint('Error checking product in list: $e');
+      return 0;
+    }
+  }
 }
