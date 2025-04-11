@@ -175,37 +175,91 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
   }
 
   void _showImageSourceDialog() {
-    showDialog(
+    showModalBottomSheet(
       context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Sélectionner une source'),
-          content: SingleChildScrollView(
-            child: ListBody(
-              children: <Widget>[
-                GestureDetector(
-                  child: const Padding(
-                    padding: EdgeInsets.all(8.0),
-                    child: Text('Galerie de photos'),
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+            left: 16,
+            right: 16,
+            top: 16,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Sélectionner une source',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: const Color.fromRGBO(247, 147, 76, 1.0),
+                    ),
                   ),
-                  onTap: () {
-                    context.pop();
-                    _pickImage(ImageSource.gallery);
-                  },
-                ),
-                const SizedBox(height: 10),
-                GestureDetector(
-                  child: const Padding(
-                    padding: EdgeInsets.all(8.0),
-                    child: Text('Appareil photo'),
+                  IconButton(
+                    icon: Icon(Icons.close),
+                    onPressed: () => context.pop(),
                   ),
-                  onTap: () {
-                    context.pop();
-                    _pickImage(ImageSource.camera);
-                  },
+                ],
+              ),
+              const SizedBox(height: 16),
+              InkWell(
+                onTap: () {
+                  context.pop();
+                  _pickImage(ImageSource.gallery);
+                },
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 12.0),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.photo_library_outlined,
+                        color: const Color.fromRGBO(247, 147, 76, 1.0),
+                        size: 24,
+                      ),
+                      const SizedBox(width: 16),
+                      Text(
+                        'Galerie de photos',
+                        style: TextStyle(fontSize: 16, color: Colors.black87),
+                      ),
+                    ],
+                  ),
                 ),
-              ],
-            ),
+              ),
+              Divider(),
+              InkWell(
+                onTap: () {
+                  context.pop();
+                  _pickImage(ImageSource.camera);
+                },
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 12.0),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.camera_alt_outlined,
+                        color: const Color.fromRGBO(247, 147, 76, 1.0),
+                        size: 24,
+                      ),
+                      const SizedBox(width: 16),
+                      Text(
+                        'Appareil photo',
+                        style: TextStyle(fontSize: 16, color: Colors.black87),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+            ],
           ),
         );
       },
@@ -376,9 +430,6 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
   @override
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
-    final appBarTitle =
-        widget.customTitle ??
-        (_isEditing ? 'Modifier le produit' : 'Créer un produit');
     final buttonText = _isEditing ? 'Mettre à jour' : 'Créer';
 
     return WillPopScope(

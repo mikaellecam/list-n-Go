@@ -194,69 +194,108 @@ class _ListCompletionScreenState extends State<ListCompletionScreen> {
   void _viewReceiptImage() {
     if (receiptImagePath == null) return;
 
-    showDialog(
+    showModalBottomSheet(
       context: context,
-      builder:
-          (context) => Dialog(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                AppBar(
-                  title: const Text('Aperçu du ticket'),
-                  backgroundColor: const Color.fromRGBO(247, 147, 76, 1.0),
-                  foregroundColor: Colors.white,
-                  leading: IconButton(
-                    icon: const Icon(Icons.close),
-                    onPressed: () => Navigator.of(context).pop(),
-                  ),
+      isScrollControlled: true, // Important for full-height sheet
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return SizedBox(
+          height:
+              MediaQuery.of(context).size.height *
+              0.85, // Use most of the screen height
+          child: Column(
+            children: [
+              Container(
+                decoration: const BoxDecoration(
+                  color: Color.fromRGBO(247, 147, 76, 1.0),
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
                 ),
-                Flexible(
-                  child: InteractiveViewer(
-                    child: Image.file(
-                      File(receiptImagePath!),
-                      fit: BoxFit.contain,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Aperçu du ticket',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
                     ),
+                    IconButton(
+                      icon: const Icon(Icons.close, color: Colors.white),
+                      onPressed: () => context.pop(),
+                    ),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: InteractiveViewer(
+                  child: Image.file(
+                    File(receiptImagePath!),
+                    fit: BoxFit.contain,
                   ),
                 ),
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      ElevatedButton.icon(
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                          _toggleCameraMode();
-                        },
-                        icon: const Icon(Icons.refresh),
-                        label: const Text('Reprendre'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.grey[600],
-                          foregroundColor: Colors.white,
+              ),
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    ElevatedButton.icon(
+                      onPressed: () {
+                        context.pop();
+                        _toggleCameraMode();
+                      },
+                      icon: const Icon(Icons.refresh),
+                      label: const Text('Reprendre'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.grey[600],
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
                         ),
                       ),
-                      ElevatedButton.icon(
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                        },
-                        icon: const Icon(Icons.check),
-                        label: const Text('Confirmer'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color.fromRGBO(
-                            247,
-                            147,
-                            76,
-                            1.0,
-                          ),
-                          foregroundColor: Colors.white,
+                    ),
+                    ElevatedButton.icon(
+                      onPressed: () {
+                        context.pop();
+                      },
+                      icon: const Icon(Icons.check),
+                      label: const Text('Confirmer'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color.fromRGBO(
+                          247,
+                          147,
+                          76,
+                          1.0,
+                        ),
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
                         ),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
+        );
+      },
     );
   }
 
@@ -336,10 +375,8 @@ class _ListCompletionScreenState extends State<ListCompletionScreen> {
           _isCameraInitialized
               ? Stack(
                 children: [
-                  // Camera preview
                   CameraPreview(_cameraController!),
 
-                  // Capture button at the bottom
                   Positioned(
                     bottom: 30,
                     left: 0,
@@ -366,7 +403,7 @@ class _ListCompletionScreenState extends State<ListCompletionScreen> {
                   // Loading indicator
                   if (isScanning)
                     Container(
-                      color: Colors.black.withOpacity(0.5),
+                      color: Colors.black.withValues(alpha: 0.5),
                       child: const Center(
                         child: Column(
                           mainAxisSize: MainAxisSize.min,

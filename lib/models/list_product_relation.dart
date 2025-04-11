@@ -1,7 +1,7 @@
 class ListProductRelation {
   final int listId;
   final int productId;
-  double quantity;
+  int quantity;
   bool isChecked;
   int position;
   final DateTime createdAt;
@@ -9,7 +9,7 @@ class ListProductRelation {
   ListProductRelation({
     required this.listId,
     required this.productId,
-    this.quantity = 1.0,
+    this.quantity = 1,
     this.isChecked = false,
     this.position = 0,
     DateTime? createdAt,
@@ -18,7 +18,7 @@ class ListProductRelation {
   factory ListProductRelation.createNew({
     required int listId,
     required int productId,
-    double quantity = 1.0,
+    int quantity = 1,
     bool isChecked = false,
     int position = 0,
   }) {
@@ -31,11 +31,29 @@ class ListProductRelation {
     );
   }
 
+  ListProductRelation copyWith({
+    int? listId,
+    int? productId,
+    int? quantity,
+    bool? isChecked,
+    int? position,
+    DateTime? createdAt,
+  }) {
+    return ListProductRelation(
+      listId: listId ?? this.listId,
+      productId: productId ?? this.productId,
+      quantity: quantity ?? this.quantity,
+      isChecked: isChecked ?? this.isChecked,
+      position: position ?? this.position,
+      createdAt: createdAt ?? this.createdAt,
+    );
+  }
+
   factory ListProductRelation.fromMap(Map<String, dynamic> map) {
     return ListProductRelation(
       listId: map['list_id'],
       productId: map['product_id'],
-      quantity: map['quantity'] ?? 1.0,
+      quantity: map['quantity'] ?? 1,
       isChecked: map['is_checked'] == 1,
       position: map['position'] ?? 0,
       createdAt: DateTime.parse(map['created_at']),

@@ -170,7 +170,7 @@ class _ProductScreenState extends State<ProductScreen> {
     try {
       final result = await productListService.addProductToList(
         product,
-        quantity: 1.0,
+        quantity: 1,
         isChecked: false,
         position: productListService.currentList.value!.products.value.length,
       );
@@ -619,7 +619,7 @@ class _ProductScreenState extends State<ProductScreen> {
     try {
       if (levelStr != null && levelStr.isNotEmpty) {
         // Supprimer toute unité (g, mg, etc.) et convertir en double
-        final cleanedStr = levelStr.replaceAll(RegExp(r'[^0-9\.]'), '');
+        final cleanedStr = levelStr.replaceAll(RegExp(r'[^0-9.]'), '');
         levelValue = double.tryParse(cleanedStr);
       }
     } catch (e) {

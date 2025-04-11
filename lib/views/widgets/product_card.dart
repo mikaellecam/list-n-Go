@@ -1,4 +1,5 @@
 import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:listngo/models/product.dart';
@@ -9,8 +10,7 @@ import '../../services/service_locator.dart';
 
 class ProductCard extends StatefulWidget {
   final Product product;
-  final Function(bool)?
-  onCheckedChanged; // Callback pour notifier le parent du changement d'état
+  final Function(bool)? onCheckedChanged;
 
   const ProductCard({super.key, required this.product, this.onCheckedChanged});
 
@@ -28,36 +28,32 @@ class _ProductCardState extends State<ProductCard> {
   void initState() {
     super.initState();
 
-    // Récupérer la liste courante
     final currentList = _productListService.currentList.value;
+
     if (currentList != null &&
         currentList.id != null &&
         widget.product.id != null) {
-      // Vérifier si le produit est dans la liste
       final relation = currentList.productRelations[widget.product.id!];
+
       if (relation != null) {
-        // Initialiser avec les valeurs de la relation spécifique à ce produit
-        _quantity = relation.quantity.toInt();
+        _quantity = relation.quantity;
         _isChecked = relation.isChecked;
       }
     }
   }
 
-  // S'assurer que les données sont à jour si les relations changent
   @override
   void didUpdateWidget(ProductCard oldWidget) {
     super.didUpdateWidget(oldWidget);
 
-    // Vérifier si nous devons mettre à jour notre état local
     final currentList = _productListService.currentList.value;
     if (currentList != null && widget.product.id != null) {
       final relation = currentList.productRelations[widget.product.id!];
       if (relation != null) {
-        // Ne mettre à jour que si la relation a changé pour éviter une boucle infinie
-        if (_quantity != relation.quantity.toInt() ||
+        if (_quantity != relation.quantity ||
             _isChecked != relation.isChecked) {
           setState(() {
-            _quantity = relation.quantity.toInt();
+            _quantity = relation.quantity;
             _isChecked = relation.isChecked;
           });
         }
@@ -69,7 +65,11 @@ class _ProductCardState extends State<ProductCard> {
     setState(() {
       if (_quantity < 99) {
         _quantity++;
-        _updateProductQuantity();
+        _productListService.updateProductQuantityInList(
+          widget.product,
+          _productListService.currentList.value!,
+          _quantity,
+        );
       }
     });
   }
@@ -78,81 +78,37 @@ class _ProductCardState extends State<ProductCard> {
     setState(() {
       if (_quantity > 1) {
         _quantity--;
-        _updateProductQuantity();
+        _productListService.updateProductQuantityInList(
+          widget.product,
+          _productListService.currentList.value!,
+          _quantity,
+        );
       }
     });
   }
 
-  // Cette méthode doit être implémentée car elle n'existe pas dans le ProductListService
-  // Nous allons devoir recréer la relation et l'ajouter à la liste
-  void _updateProductQuantity() async {
-    // Obtenir la liste courante et sa version actuelle
-    final currentList = _productListService.currentList.value;
-    if (currentList != null &&
-        currentList.id != null &&
-        widget.product.id != null) {
-      try {
-        // Sauvegarder l'état coché actuel
-        final currentRelation =
-            currentList.productRelations[widget.product.id!];
-        final isCheckedState = currentRelation?.isChecked ?? _isChecked;
-        final position = currentRelation?.position ?? 0;
-
-        // Supprimer spécifiquement ce produit
-        await _productListService.removeProductFromList(
-          widget.product,
-          listId: currentList.id!,
-        );
-
-        // Puis réajouter avec la nouvelle quantité, mais conserver l'état coché
-        await _productListService.addProductToList(
-          widget.product,
-          quantity: _quantity.toDouble(),
-          isChecked: isCheckedState,
-          position: position,
-        );
-      } catch (e) {
-        debugPrint('Erreur lors de la mise à jour de la quantité: $e');
-      }
-    }
-  }
-
   void _toggleCheck() async {
-    // Mettre à jour l'état local en premier
     bool newCheckedState = !_isChecked;
 
     setState(() {
       _isChecked = newCheckedState;
     });
 
-    // Obtenir la liste courante et sa version actuelle
     final currentList = _productListService.currentList.value;
     if (currentList != null &&
         currentList.id != null &&
         widget.product.id != null) {
       try {
-        // Supprimer spécifiquement ce produit
-        await _productListService.removeProductFromList(
+        await _productListService.checkProductInList(
           widget.product,
-          listId: currentList.id!,
+          currentList,
+          _isChecked ? 1 : 0,
         );
 
-        // Puis réajouter avec le nouvel état
-        await _productListService.addProductToList(
-          widget.product,
-          quantity: _quantity.toDouble(),
-          isChecked: newCheckedState,
-          // Conserver la position d'origine si elle existe
-          position:
-              currentList.productRelations[widget.product.id!]?.position ?? 0,
-        );
-
-        // Appeler le callback pour notifier le parent du changement d'état
         if (widget.onCheckedChanged != null) {
           widget.onCheckedChanged!(newCheckedState);
         }
       } catch (e) {
-        // En cas d'erreur, revenir à l'état précédent
         setState(() {
           _isChecked = !newCheckedState;
         });
@@ -161,14 +117,6 @@ class _ProductCardState extends State<ProductCard> {
     }
   }
 
-  void _navigateToProductDetails() {
-    // Mettre à jour le produit courant dans le service
-    _productService.currentProduct.value = widget.product;
-    // Naviguer vers la page de détail du produit
-    context.push('/product');
-  }
-
-  // Widget pour afficher l'image du produit selon sa source
   Widget _displayProductImage() {
     if (widget.product.imagePath == null || widget.product.imagePath!.isEmpty) {
       return Container(
@@ -182,7 +130,6 @@ class _ProductCardState extends State<ProductCard> {
       );
     }
 
-    // Si le produit n'est pas isApi (donc un produit local), utiliser File
     if (!widget.product.isApi) {
       return ClipRRect(
         borderRadius: BorderRadius.circular(16),
@@ -210,7 +157,6 @@ class _ProductCardState extends State<ProductCard> {
         ),
       );
     } else {
-      // Pour les produits API, utiliser Image.network
       return ClipRRect(
         borderRadius: BorderRadius.circular(16),
         child: Image.network(
@@ -265,11 +211,14 @@ class _ProductCardState extends State<ProductCard> {
     return Padding(
       padding: const EdgeInsets.only(left: 15, right: 15, bottom: 10),
       child: GestureDetector(
-        onTap: _navigateToProductDetails,
+        onTap: () {
+          _productService.currentProduct.value = widget.product;
+          context.push('/product');
+        },
         child: Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16),
-            color: Colors.white.withOpacity(0.5),
+            color: Colors.white.withValues(alpha: 0.5),
           ),
           padding: const EdgeInsets.all(10),
           child: Row(
@@ -357,25 +306,112 @@ class _ProductCardState extends State<ProductCard> {
                             IconButton(
                               icon: const Icon(Icons.delete_outline),
                               onPressed: () async {
-                                bool? confirm = await showDialog(
+                                bool?
+                                confirm = await showModalBottomSheet<bool>(
                                   context: context,
-                                  builder:
-                                      (context) => AlertDialog(
-                                        title: const Text('Confirmation'),
-                                        content: const Text(
-                                          'Êtes-vous sûr de vouloir supprimer cet élément ?',
-                                        ),
-                                        actions: <Widget>[
-                                          TextButton(
-                                            onPressed: () => context.pop(false),
-                                            child: const Text('Annuler'),
+                                  isScrollControlled: true,
+                                  shape: const RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.vertical(
+                                      top: Radius.circular(20),
+                                    ),
+                                  ),
+                                  builder: (context) {
+                                    return Padding(
+                                      padding: EdgeInsets.only(
+                                        bottom:
+                                            MediaQuery.of(
+                                              context,
+                                            ).viewInsets.bottom,
+                                        left: 16,
+                                        right: 16,
+                                        top: 16,
+                                      ),
+                                      child: Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              Text(
+                                                'Confirmation',
+                                                style: TextStyle(
+                                                  fontSize: 20,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: const Color.fromRGBO(
+                                                    247,
+                                                    147,
+                                                    76,
+                                                    1.0,
+                                                  ),
+                                                ),
+                                              ),
+                                              IconButton(
+                                                icon: Icon(Icons.close),
+                                                onPressed:
+                                                    () => context.pop(false),
+                                              ),
+                                            ],
                                           ),
-                                          TextButton(
-                                            onPressed: () => context.pop(true),
-                                            child: const Text('Supprimer'),
+                                          const SizedBox(height: 16),
+                                          Text(
+                                            'Êtes-vous sûr de vouloir supprimer cet élément ?',
+                                            style: TextStyle(
+                                              fontSize: 16,
+                                              color: Colors.black87,
+                                            ),
                                           ),
+                                          const SizedBox(height: 24),
+                                          Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.end,
+                                            children: [
+                                              TextButton(
+                                                onPressed:
+                                                    () => context.pop(false),
+                                                child: Text(
+                                                  'Annuler',
+                                                  style: TextStyle(
+                                                    color: Colors.grey[700],
+                                                  ),
+                                                ),
+                                              ),
+                                              const SizedBox(width: 8),
+                                              ElevatedButton(
+                                                onPressed:
+                                                    () => context.pop(true),
+                                                style: ElevatedButton.styleFrom(
+                                                  backgroundColor:
+                                                      const Color.fromRGBO(
+                                                        247,
+                                                        147,
+                                                        76,
+                                                        1.0,
+                                                      ),
+                                                  foregroundColor: Colors.white,
+                                                  shape: RoundedRectangleBorder(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          12,
+                                                        ),
+                                                  ),
+                                                  padding:
+                                                      const EdgeInsets.symmetric(
+                                                        horizontal: 16,
+                                                        vertical: 12,
+                                                      ),
+                                                ),
+                                                child: Text('Supprimer'),
+                                              ),
+                                            ],
+                                          ),
+                                          const SizedBox(height: 16),
                                         ],
                                       ),
+                                    );
+                                  },
                                 );
 
                                 if (confirm == true) {
@@ -391,7 +427,6 @@ class _ProductCardState extends State<ProductCard> {
                                 }
                               },
                             ),
-                            // Bouton cocher
                             AnimatedContainer(
                               duration: const Duration(milliseconds: 300),
                               width: 40,

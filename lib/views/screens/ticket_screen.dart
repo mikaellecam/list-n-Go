@@ -141,8 +141,8 @@ class _TicketScreenState extends State<TicketScreen> {
                         if (product.id != null) {
                           final relation =
                               receipt.productRelations[product.id!];
-                          if (relation != null && relation.quantity != null) {
-                            quantity = relation.quantity.toInt();
+                          if (relation != null) {
+                            quantity = relation.quantity;
                           }
                         }
 
@@ -162,8 +162,6 @@ class _TicketScreenState extends State<TicketScreen> {
       bottomNavigationBar: ValueListenableBuilder<Receipt?>(
         valueListenable: _receiptService.currentReceipt,
         builder: (context, receipt, child) {
-          final hasImage = receipt != null && _imageExists(receipt.imagePath);
-
           return Stack(
             clipBehavior: Clip.none,
             children: [

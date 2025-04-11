@@ -22,11 +22,13 @@ class _HomeScreenState extends State<HomeScreen> {
   int _selectedTab = 0;
   final ProductListService _productListService = getIt<ProductListService>();
   final ReceiptService _receiptService = getIt<ReceiptService>();
+  late final TextEditingController _listCreationController;
 
   @override
   void initState() {
     super.initState();
     _loadProductLists();
+    _listCreationController = TextEditingController();
   }
 
   Future<void> _loadProductLists() async {
@@ -35,6 +37,12 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _loadReceiptLists() async {
     await _receiptService.loadReceiptsWithProducts();
+  }
+
+  @override
+  void dispose() {
+    _listCreationController.dispose();
+    super.dispose();
   }
 
   @override
@@ -70,8 +78,6 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _createNewList() async {
-    final TextEditingController textController = TextEditingController();
-
     try {
       String? name = await showModalBottomSheet<String>(
         context: context,
@@ -110,7 +116,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 const SizedBox(height: 16),
                 TextField(
-                  controller: textController,
+                  controller: _listCreationController,
                   style: TextStyle(color: Colors.black),
                   autofocus: false,
                   decoration: InputDecoration(
@@ -152,7 +158,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     const SizedBox(width: 8),
                     ElevatedButton(
-                      onPressed: () => context.pop(textController.text),
+                      onPressed:
+                          () => context.pop(_listCreationController.text),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color.fromRGBO(
                           247,
@@ -192,8 +199,18 @@ class _HomeScreenState extends State<HomeScreen> {
           );
         }
       }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Erreur lors de la création de la liste"),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     } finally {
-      textController.dispose();
+      _productListService.error.value = null;
+      _loadProductLists();
     }
   }
 

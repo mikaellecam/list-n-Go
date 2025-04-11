@@ -75,35 +75,100 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
   }
 
   void _showScannedBarcode(BuildContext context, String barcode) {
-    showDialog(
+    showModalBottomSheet(
       context: context,
-      barrierDismissible: false,
-      builder:
-          (context) => AlertDialog(
-            title: const Text('Code-barres détecté'),
-            content: Text('Code: $barcode'),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  setState(() {
-                    _hasScanned = false;
-                  });
-                  Navigator.of(context).pop();
-                },
-                child: const Text('Scanner à nouveau'),
+      isDismissible: false,
+      enableDrag: false,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+            left: 16,
+            right: 16,
+            top: 16,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Expanded(
+                    child: Text(
+                      'Code-barres détecté',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: const Color.fromRGBO(247, 147, 76, 1.0),
+                      ),
+                    ),
+                  ),
+                ],
               ),
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                  context.pop(barcode);
-                },
-                style: TextButton.styleFrom(
-                  foregroundColor: const Color.fromRGBO(247, 147, 76, 1.0),
-                ),
-                child: const Text('Confirmer'),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Icon(
+                    Icons.qr_code,
+                    color: const Color.fromRGBO(247, 147, 76, 1.0),
+                    size: 24,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'Code: $barcode',
+                      style: TextStyle(fontSize: 16, color: Colors.black87),
+                    ),
+                  ),
+                ],
               ),
+              const SizedBox(height: 24),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton(
+                    onPressed: () {
+                      setState(() {
+                        _hasScanned = false;
+                      });
+                      Navigator.of(context).pop();
+                    },
+                    child: Text(
+                      'Scanner à nouveau',
+                      style: TextStyle(color: Colors.grey[700]),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                      context.pop(barcode);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color.fromRGBO(247, 147, 76, 1.0),
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                    ),
+                    child: Text('Confirmer'),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
             ],
           ),
+        );
+      },
     );
   }
 }
