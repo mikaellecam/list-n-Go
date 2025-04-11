@@ -1,7 +1,7 @@
 class ReceiptProductRelation {
   final int receiptId;
   final int productId;
-  final double quantity;
+  final int quantity;
   final int position;
   final DateTime? createdAt;
 
@@ -17,7 +17,7 @@ class ReceiptProductRelation {
     return ReceiptProductRelation(
       receiptId: map['receipt_id'],
       productId: map['product_id'],
-      quantity: map['quantity'] ?? 1.0,
+      quantity: map['quantity'] ?? 1,
       position: map['position'] ?? 0,
       createdAt:
           map['created_at'] != null ? DateTime.parse(map['created_at']) : null,

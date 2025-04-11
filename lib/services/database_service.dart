@@ -82,7 +82,7 @@ class DatabaseService {
       CREATE TABLE ListProductRelation (
         list_id INTEGER NOT NULL,
         product_id INTEGER NOT NULL,
-        quantity REAL NOT NULL DEFAULT 1,
+        quantity INTEGER NOT NULL DEFAULT 1,
         is_checked INTEGER DEFAULT 0,
         position INTEGER DEFAULT 0,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -106,7 +106,7 @@ class DatabaseService {
   CREATE TABLE ReceiptProductRelation (
     receipt_id INTEGER,
     product_id INTEGER,
-    quantity REAL DEFAULT 1.0,
+    quantity INTEGER DEFAULT 1,
     position INTEGER DEFAULT 0,
     created_at TEXT,
     PRIMARY KEY (receipt_id, product_id),
@@ -288,7 +288,7 @@ class DatabaseService {
   Future<int> addProductToList(
     int listId,
     int productId, {
-    double quantity = 1.0,
+    int quantity = 1,
     bool isChecked = false,
     int position = 0,
   }) async {
@@ -614,15 +614,39 @@ class DatabaseService {
     }
   }
 
-  Future<int> checkProductInList(int productId, int productListId) async {
+  Future<int> checkProductInList(
+    int productId,
+    int productListId,
+    int check,
+  ) async {
     try {
       final db = await database;
 
       return await db.update(
         'ListProductRelation',
-        {'is_checked': 1},
+        {'is_checked': check},
         where: 'list_id = ? AND product_id = ?',
         whereArgs: [productId, productListId],
+      );
+    } catch (e) {
+      debugPrint('Error checking product in list: $e');
+      return 0;
+    }
+  }
+
+  Future<int> updateProductQuantityInList(
+    int productId,
+    int productListId,
+    int newQuantity,
+  ) async {
+    try {
+      final db = await database;
+
+      return await db.update(
+        'ListProductRelation',
+        {'quantity': newQuantity},
+        where: 'list_id= ? AND product_id = ?',
+        whereArgs: [productListId, productId],
       );
     } catch (e) {
       debugPrint('Error checking product in list: $e');

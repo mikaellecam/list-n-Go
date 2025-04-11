@@ -84,7 +84,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
       final relation =
           productListService.currentList.value!.productRelations[product.id!];
       final position = relation?.position ?? 0;
-      final quantity = relation?.quantity ?? 1.0;
+      final quantity = relation?.quantity ?? 1;
 
       try {
         // Supprimer le produit de la liste
@@ -160,7 +160,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
 
     final result = await productListService.addProductToList(
       product,
-      quantity: 1.0,
+      quantity: 1,
       isChecked: false,
       position: productListService.currentList.value!.products.value.length,
     );
@@ -372,7 +372,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
               child: GestureDetector(
                 onTap: toggleExpandOptions,
                 behavior: HitTestBehavior.translucent,
-                child: Container(color: Colors.black.withOpacity(0.5)),
+                child: Container(color: Colors.black.withValues(alpha: 0.5)),
               ),
             ),
           if (_isExpanded)
@@ -396,7 +396,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                             borderRadius: BorderRadius.circular(20),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withOpacity(0.1),
+                                color: Colors.black.withValues(alpha: 0.1),
                                 spreadRadius: 1,
                                 blurRadius: 3,
                                 offset: const Offset(0, 1),
@@ -474,7 +474,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                           borderRadius: BorderRadius.circular(20),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.1),
+                              color: Colors.black.withValues(alpha: 0.1),
                               spreadRadius: 1,
                               blurRadius: 3,
                               offset: const Offset(0, 1),

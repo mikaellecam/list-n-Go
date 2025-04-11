@@ -163,7 +163,7 @@ class ProductListService {
 
   Future<bool> addProductToList(
     Product product, {
-    double quantity = 1.0,
+    int quantity = 1,
     bool isChecked = false,
     int position = 0,
   }) async {
@@ -323,6 +323,7 @@ class ProductListService {
   Future<void> checkProductInList(
     Product product,
     ProductList productList,
+    int check,
   ) async {
     isLoading.value = true;
     error.value = null;
@@ -340,7 +341,7 @@ class ProductListService {
         return;
       }
 
-      await db.checkProductInList(listId, productId);
+      await db.checkProductInList(listId, productId, check);
 
       final actualList = findListById(listId);
       if (actualList == null) {
@@ -355,6 +356,52 @@ class ProductListService {
         actualList.productRelations.update(
           productId,
           (relation) => relation.copyWith(isChecked: !relation.isChecked),
+        );
+      }
+    } catch (e) {
+      error.value = 'Error checking product in list: $e';
+      debugPrint('Error checking product in list: $e');
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<void> updateProductQuantityInList(
+    Product product,
+    ProductList productList,
+    int quantity,
+  ) async {
+    isLoading.value = true;
+    error.value = null;
+
+    try {
+      final productId = product.id;
+      final productListId = productList.id;
+
+      if (productListId == null) {
+        error.value = 'List ID is null';
+        return;
+      }
+      if (productId == null) {
+        error.value = 'Product ID is null';
+        return;
+      }
+
+      await db.updateProductQuantityInList(productId, productListId, quantity);
+
+      final actualList = findListById(productListId);
+      if (actualList == null) {
+        error.value = 'List not found in service';
+        return;
+      }
+
+      final index = actualList.products.value.indexWhere(
+        (p) => p.id == productId,
+      );
+      if (index >= 0) {
+        actualList.productRelations.update(
+          productId,
+          (relation) => relation.copyWith(quantity: quantity),
         );
       }
     } catch (e) {
