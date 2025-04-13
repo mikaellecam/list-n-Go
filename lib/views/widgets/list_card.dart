@@ -133,13 +133,13 @@ class _ListCardState extends State<ListCard> {
                       PopupMenuItem(
                         onTap: startRenaming,
                         child: const Text(
-                          'Rename',
+                          'Renommer',
                           style: TextStyle(color: Colors.black),
                         ),
                       ),
                       PopupMenuItem(
                         child: const Text(
-                          'Remove',
+                          'Supprimer',
                           style: TextStyle(color: Colors.black),
                         ),
                         onTap: () async {
@@ -152,7 +152,8 @@ class _ListCardState extends State<ListCard> {
                               ),
                             ),
                             builder: (context) {
-                              return Padding(
+                              return Container(
+                                color : const Color.fromARGB(255, 243, 243, 243),
                                 padding: EdgeInsets.only(
                                   bottom:
                                       MediaQuery.of(context).viewInsets.bottom,

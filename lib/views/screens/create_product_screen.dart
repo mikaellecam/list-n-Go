@@ -182,7 +182,8 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (context) {
-        return Padding(
+        return Container(
+          color: const Color.fromARGB(255, 243, 243, 243),
           padding: EdgeInsets.only(
             bottom: MediaQuery.of(context).viewInsets.bottom,
             left: 16,
