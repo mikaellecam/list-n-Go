@@ -133,36 +133,114 @@ class _ListCardState extends State<ListCard> {
                       PopupMenuItem(
                         onTap: startRenaming,
                         child: const Text(
-                          'Rename',
+                          'Renommer',
                           style: TextStyle(color: Colors.black),
                         ),
                       ),
                       PopupMenuItem(
                         child: const Text(
-                          'Remove',
+                          'Supprimer',
                           style: TextStyle(color: Colors.black),
                         ),
                         onTap: () async {
-                          bool? confirm = await showDialog(
+                          bool? confirm = await showModalBottomSheet<bool>(
                             context: context,
-                            builder:
-                                (context) => AlertDialog(
-                                  title: const Text('Confirmation'),
-                                  content: const Text(
-                                    'Êtes-vous sûr de vouloir supprimer cet élément ?',
-                                  ),
-                                  actions: <Widget>[
-                                    TextButton(
-                                      onPressed: () => context.pop(false),
-                                      child: const Text('Annuler'),
+                            isScrollControlled: true,
+                            shape: const RoundedRectangleBorder(
+                              borderRadius: BorderRadius.vertical(
+                                top: Radius.circular(20),
+                              ),
+                            ),
+                            builder: (context) {
+                              return Container(
+                                color : const Color.fromARGB(255, 243, 243, 243),
+                                padding: EdgeInsets.only(
+                                  bottom:
+                                      MediaQuery.of(context).viewInsets.bottom,
+                                  left: 16,
+                                  right: 16,
+                                  top: 16,
+                                ),
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                          'Confirmation',
+                                          style: TextStyle(
+                                            fontSize: 20,
+                                            fontWeight: FontWeight.bold,
+                                            color: const Color.fromRGBO(
+                                              247,
+                                              147,
+                                              76,
+                                              1.0,
+                                            ),
+                                          ),
+                                        ),
+                                        IconButton(
+                                          icon: Icon(Icons.close),
+                                          onPressed: () => context.pop(false),
+                                        ),
+                                      ],
                                     ),
-                                    TextButton(
-                                      onPressed: () => context.pop(true),
-                                      child: const Text('Supprimer'),
+                                    const SizedBox(height: 16),
+                                    Text(
+                                      'Êtes-vous sûr de vouloir supprimer cet élément ?',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        color: Colors.black87,
+                                      ),
                                     ),
+                                    const SizedBox(height: 24),
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.end,
+                                      children: [
+                                        TextButton(
+                                          onPressed: () => context.pop(false),
+                                          child: Text(
+                                            'Annuler',
+                                            style: TextStyle(
+                                              color: Colors.grey[700],
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        ElevatedButton(
+                                          onPressed: () => context.pop(true),
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor:
+                                                const Color.fromRGBO(
+                                                  247,
+                                                  147,
+                                                  76,
+                                                  1.0,
+                                                ),
+                                            foregroundColor: Colors.white,
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
+                                            ),
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 16,
+                                              vertical: 12,
+                                            ),
+                                          ),
+                                          child: Text('Supprimer'),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 16),
                                   ],
                                 ),
+                              );
+                            },
                           );
+
                           if (confirm != null && confirm) {
                             await getIt<ProductListService>().removeList(
                               widget.productList,

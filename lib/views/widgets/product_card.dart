@@ -316,7 +316,8 @@ class _ProductCardState extends State<ProductCard> {
                                     ),
                                   ),
                                   builder: (context) {
-                                    return Padding(
+                                    return Container(
+                                      color: const Color.fromARGB(255, 243, 243, 243),
                                       padding: EdgeInsets.only(
                                         bottom:
                                             MediaQuery.of(
